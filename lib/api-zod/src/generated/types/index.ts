@@ -18,6 +18,7 @@ export * from './pairDetailPattern';
 export * from './pairDetailSignal';
 export * from './pairDetailZoneStatus';
 export * from './pairSummary';
+export * from './pairSummaryAdrRisk';
 export * from './pairSummaryPattern';
 export * from './pairSummarySignal';
 export * from './pairSummaryZoneStatus';

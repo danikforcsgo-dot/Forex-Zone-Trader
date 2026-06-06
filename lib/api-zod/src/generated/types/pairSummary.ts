@@ -5,6 +5,7 @@
  * Forex Trading Dashboard API
  * OpenAPI spec version: 0.1.0
  */
+import type { PairSummaryAdrRisk } from './pairSummaryAdrRisk';
 import type { PairSummaryPattern } from './pairSummaryPattern';
 import type { PairSummarySignal } from './pairSummarySignal';
 import type { PairSummaryZoneStatus } from './pairSummaryZoneStatus';
@@ -30,5 +31,22 @@ export interface PairSummary {
   distanceToNearestZonePct?: number | null;
   /** Candlestick pattern detected on the last candle near/in the zone */
   pattern?: PairSummaryPattern;
+  /**
+     * Average Daily Range over last 14 days in pips
+     * @nullable
+     */
+  adrPips?: number | null;
+  /**
+     * Today's high-low range in pips so far
+     * @nullable
+     */
+  todayRangePips?: number | null;
+  /**
+     * Percentage of ADR already consumed today (0-100+)
+     * @nullable
+     */
+  adrPercent?: number | null;
+  /** low<50%, medium 50-70%, high 70-90%, very_high>90% */
+  adrRisk?: PairSummaryAdrRisk;
   updatedAt: string;
 }

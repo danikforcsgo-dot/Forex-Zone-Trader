@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, Target, TrendingUp, TrendingDown } from "lucide-rea
 import { MiniChart } from "@/components/mini-chart";
 import { PatternBadge } from "@/components/pattern-badge";
 import { ZoneRating } from "@/components/zone-rating";
+import { AdrBar } from "@/components/adr-bar";
 import { useSoundAlert } from "@/hooks/use-sound-alert";
 
 export default function PairDetail() {
@@ -37,13 +38,10 @@ export default function PairDetail() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in">
+      {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-4">
-          <Link
-            href="/"
-            className="p-2 hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground"
-            data-testid="link-back"
-          >
+          <Link href="/" className="p-2 hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground" data-testid="link-back">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -57,7 +55,6 @@ export default function PairDetail() {
             </div>
           </div>
         </div>
-
         <div className="text-right">
           <div className="text-4xl font-mono font-black text-primary" data-testid="text-current-price">
             {detail.currentPrice.toFixed(5)}
@@ -68,34 +65,30 @@ export default function PairDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4">
+
           {/* Signal card */}
-          <div className={`p-6 rounded-lg border ${
+          <div className={`p-5 rounded-lg border ${
             isShort ? "border-destructive bg-destructive/10" :
-            isLong ? "border-success bg-success/10" :
+            isLong  ? "border-success bg-success/10" :
             "border-border bg-card"
           }`}>
             <h3 className="text-xs font-bold text-muted-foreground uppercase mb-4 flex items-center gap-2">
               <Target className="w-4 h-4" />
               Торговый Сигнал
             </h3>
-
             <div className="mb-4">
               <div className="text-3xl font-black uppercase tracking-widest mb-2">
                 {isShort ? <span className="text-destructive">ПРОДАЖА</span> :
                  isLong  ? <span className="text-success">ПОКУПКА</span> :
                  <span className="text-muted-foreground">НЕЙТРАЛЬНО</span>}
               </div>
-              <div className="text-sm opacity-80 mb-2">
-                Статус зоны: {detail.zoneStatus}
-              </div>
-              {/* Pattern badge shown when there is a signal */}
+              <div className="text-sm opacity-80 mb-2">Статус зоны: {detail.zoneStatus}</div>
               {detail.pattern && detail.pattern !== "none" && (
                 <PatternBadge pattern={detail.pattern} />
               )}
             </div>
-
-            <div className="space-y-3 font-mono text-sm">
+            <div className="space-y-2 font-mono text-sm">
               <div className="flex justify-between items-center py-2 border-b border-border/50">
                 <span className="text-muted-foreground">BID</span>
                 <span>{detail.bid.toFixed(5)}</span>
@@ -107,63 +100,51 @@ export default function PairDetail() {
             </div>
           </div>
 
+          {/* ADR card */}
+          <div className="p-5 rounded-lg border border-border bg-card">
+            <AdrBar
+              adrPips={detail.adrPips}
+              todayRangePips={detail.todayRangePips}
+              adrPercent={detail.adrPercent}
+              adrRisk={detail.adrRisk}
+            />
+          </div>
+
           {/* Zones list */}
-          <div className="p-6 rounded-lg border border-border bg-card">
+          <div className="p-5 rounded-lg border border-border bg-card">
             <h3 className="text-xs font-bold text-muted-foreground uppercase mb-4">Ближайшие зоны</h3>
             <div className="space-y-4">
 
-              {/* Resistance */}
               <div>
                 <div className="flex items-center gap-2 text-destructive mb-2 text-sm font-bold">
                   <TrendingDown className="w-4 h-4" /> СОПРОТИВЛЕНИЕ
                 </div>
                 {detail.resistanceZones.slice(0, 3).map((z, i) => (
-                  <div
-                    key={i}
-                    className="py-2 border-b border-border/50 last:border-0 space-y-1"
-                    data-testid={`zone-resistance-${i}`}
-                  >
+                  <div key={i} className="py-2 border-b border-border/50 last:border-0 space-y-1" data-testid={`zone-resistance-${i}`}>
                     <div className="font-mono text-sm flex justify-between">
                       <span>{z.bot.toFixed(5)} — {z.top.toFixed(5)}</span>
-                      <span className="text-muted-foreground text-xs">{z.touches} каc.</span>
+                      <span className="text-muted-foreground text-xs">{z.touches} кас.</span>
                     </div>
-                    <ZoneRating
-                      rating={z.rating ?? 1}
-                      htfConfluence={z.htfConfluence ?? false}
-                      htfLevel={z.htfLevel}
-                    />
+                    <ZoneRating rating={z.rating ?? 1} htfConfluence={z.htfConfluence ?? false} htfLevel={z.htfLevel} />
                   </div>
                 ))}
-                {detail.resistanceZones.length === 0 && (
-                  <div className="text-sm text-muted-foreground">Нет зон</div>
-                )}
+                {detail.resistanceZones.length === 0 && <div className="text-sm text-muted-foreground">Нет зон</div>}
               </div>
 
-              {/* Support */}
               <div className="pt-2">
                 <div className="flex items-center gap-2 text-success mb-2 text-sm font-bold">
                   <TrendingUp className="w-4 h-4" /> ПОДДЕРЖКА
                 </div>
                 {detail.supportZones.slice(0, 3).map((z, i) => (
-                  <div
-                    key={i}
-                    className="py-2 border-b border-border/50 last:border-0 space-y-1"
-                    data-testid={`zone-support-${i}`}
-                  >
+                  <div key={i} className="py-2 border-b border-border/50 last:border-0 space-y-1" data-testid={`zone-support-${i}`}>
                     <div className="font-mono text-sm flex justify-between">
                       <span>{z.bot.toFixed(5)} — {z.top.toFixed(5)}</span>
-                      <span className="text-muted-foreground text-xs">{z.touches} каc.</span>
+                      <span className="text-muted-foreground text-xs">{z.touches} кас.</span>
                     </div>
-                    <ZoneRating
-                      rating={z.rating ?? 1}
-                      htfConfluence={z.htfConfluence ?? false}
-                      htfLevel={z.htfLevel}
-                    />
+                    <ZoneRating rating={z.rating ?? 1} htfConfluence={z.htfConfluence ?? false} htfLevel={z.htfLevel} />
                   </div>
                 ))}
-                {detail.supportZones.length === 0 && (
-                  <div className="text-sm text-muted-foreground">Нет зон</div>
-                )}
+                {detail.supportZones.length === 0 && <div className="text-sm text-muted-foreground">Нет зон</div>}
               </div>
             </div>
           </div>

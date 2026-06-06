@@ -2,6 +2,7 @@ import { PairSummary } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
 import { PatternBadge } from "@/components/pattern-badge";
+import { AdrBar } from "@/components/adr-bar";
 
 interface PairCardProps {
   pair: PairSummary;
@@ -34,7 +35,7 @@ export function PairCard({ pair }: PairCardProps) {
       className={`block rounded-lg border ${cardBorder} ${cardBg} ${glow} p-4 transition-all hover:brightness-110 hover:-translate-y-1`}
       data-testid={`card-pair-${pair.symbol}`}
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-3">
         <div>
           <h2 className="text-xl font-bold text-foreground">{pair.displayName}</h2>
           <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
@@ -42,7 +43,6 @@ export function PairCard({ pair }: PairCardProps) {
             M15 ТАЙМФРЕЙМ
           </div>
         </div>
-
         <div className={`text-right ${pair.change >= 0 ? "text-success" : "text-destructive"}`}>
           <div className="flex items-center justify-end font-bold text-lg">
             {pair.change >= 0 ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
@@ -54,7 +54,7 @@ export function PairCard({ pair }: PairCardProps) {
         </div>
       </div>
 
-      <div className="text-3xl font-black text-foreground tracking-tight my-4" data-testid={`text-price-${pair.symbol}`}>
+      <div className="text-3xl font-black text-foreground tracking-tight my-3" data-testid={`text-price-${pair.symbol}`}>
         {pair.currentPrice.toFixed(5)}
       </div>
 
@@ -69,6 +69,17 @@ export function PairCard({ pair }: PairCardProps) {
         </div>
       </div>
 
+      {/* ADR compact bar */}
+      <div className="mb-3">
+        <AdrBar
+          adrPips={pair.adrPips}
+          todayRangePips={pair.todayRangePips}
+          adrPercent={pair.adrPercent}
+          adrRisk={pair.adrRisk}
+          compact
+        />
+      </div>
+
       {/* Pattern badge */}
       {pair.pattern && pair.pattern !== "none" && (
         <div className="mb-3">
@@ -80,7 +91,7 @@ export function PairCard({ pair }: PairCardProps) {
         <span className="text-muted-foreground">СТАТУС ЗОНЫ:</span>
         <span className={
           isShort ? "text-destructive" :
-          isLong ? "text-success" :
+          isLong  ? "text-success" :
           (isNearResistance || isNearSupport) ? "text-warning" : "text-muted-foreground"
         }>
           {pair.zoneStatus.replace(/_/g, " ")}

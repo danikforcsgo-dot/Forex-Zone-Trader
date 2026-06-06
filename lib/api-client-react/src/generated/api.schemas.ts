@@ -47,6 +47,20 @@ export const PairSummaryPattern = {
   doji: 'doji',
 } as const;
 
+/**
+ * low<50%, medium 50-70%, high 70-90%, very_high>90%
+ */
+export type PairSummaryAdrRisk = typeof PairSummaryAdrRisk[keyof typeof PairSummaryAdrRisk];
+
+
+export const PairSummaryAdrRisk = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  very_high: 'very_high',
+  unknown: 'unknown',
+} as const;
+
 export interface PairSummary {
   /** e.g. GBPUSD */
   symbol: string;
@@ -68,6 +82,23 @@ export interface PairSummary {
   distanceToNearestZonePct?: number | null;
   /** Candlestick pattern detected on the last candle near/in the zone */
   pattern?: PairSummaryPattern;
+  /**
+     * Average Daily Range over last 14 days in pips
+     * @nullable
+     */
+  adrPips?: number | null;
+  /**
+     * Today's high-low range in pips so far
+     * @nullable
+     */
+  todayRangePips?: number | null;
+  /**
+     * Percentage of ADR already consumed today (0-100+)
+     * @nullable
+     */
+  adrPercent?: number | null;
+  /** low<50%, medium 50-70%, high 70-90%, very_high>90% */
+  adrRisk?: PairSummaryAdrRisk;
   updatedAt: string;
 }
 
