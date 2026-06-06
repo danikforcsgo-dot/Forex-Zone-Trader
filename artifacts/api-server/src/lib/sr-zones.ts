@@ -199,7 +199,23 @@ export function calculateZones(candles: Candle[]): { resistance: SRZone[]; suppo
   const resistance = buildZones(highPivots, true, a, vAvg, currentBar, minTouches, clusterTol, minSpacing);
   const support = buildZones(lowPivots, false, a, vAvg, currentBar, minTouches, clusterTol, minSpacing);
 
-  return { resistance, support };
+  // Filter out broken zones: resistance broken if any close after lastTouch > zone.top
+  // Support broken if any close after lastTouch < zone.bot
+  const activeResistance = resistance.filter((zone) => {
+    for (let i = zone.lastTouch + 1; i < candles.length; i++) {
+      if (candles[i]!.close > zone.top) return false;
+    }
+    return true;
+  });
+
+  const activeSupport = support.filter((zone) => {
+    for (let i = zone.lastTouch + 1; i < candles.length; i++) {
+      if (candles[i]!.close < zone.bot) return false;
+    }
+    return true;
+  });
+
+  return { resistance: activeResistance, support: activeSupport };
 }
 
 export type ZoneStatus = "neutral" | "resistance" | "support" | "near_resistance" | "near_support";
