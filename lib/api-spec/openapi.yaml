@@ -162,6 +162,10 @@ components:
           type: ["number", "null"]
         distanceToNearestZonePct:
           type: ["number", "null"]
+        pattern:
+          type: string
+          enum: [none, pin_bar_bullish, pin_bar_bearish, engulfing_bullish, engulfing_bearish, doji]
+          description: "Candlestick pattern detected on the last candle near/in the zone"
         updatedAt:
           type: string
 
@@ -197,6 +201,8 @@ components:
         - isResistance
         - touches
         - strength
+        - rating
+        - htfConfluence
       properties:
         top:
           type: number
@@ -216,6 +222,16 @@ components:
           type: integer
         lastTouch:
           type: integer
+        rating:
+          type: integer
+          description: "1-5 star rating: touches + HTF confluence"
+        htfConfluence:
+          type: boolean
+          description: "True if zone aligns with H1 or H4 S&R zone"
+        htfLevel:
+          type: string
+          enum: [none, H1, H4, H1_H4]
+          description: "Which higher timeframe confirms this zone"
 
     PairDetail:
       type: object
@@ -254,6 +270,9 @@ components:
         signal:
           type: string
           enum: [none, short, long]
+        pattern:
+          type: string
+          enum: [none, pin_bar_bullish, pin_bar_bearish, engulfing_bullish, engulfing_bearish, doji]
         candles:
           type: array
           items:

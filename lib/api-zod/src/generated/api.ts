@@ -32,6 +32,7 @@ export const GetPairsResponseItem = zod.object({
   "nearestResistance": zod.number().nullish(),
   "nearestSupport": zod.number().nullish(),
   "distanceToNearestZonePct": zod.number().nullish(),
+  "pattern": zod.enum(['none', 'pin_bar_bullish', 'pin_bar_bearish', 'engulfing_bullish', 'engulfing_bearish', 'doji']).optional().describe('Candlestick pattern detected on the last candle near\/in the zone'),
   "updatedAt": zod.string()
 })
 export const GetPairsResponse = zod.array(GetPairsResponseItem)
@@ -54,6 +55,7 @@ export const GetPairDetailResponse = zod.object({
   "changePct": zod.number(),
   "zoneStatus": zod.enum(['neutral', 'resistance', 'support', 'near_resistance', 'near_support']),
   "signal": zod.enum(['none', 'short', 'long']),
+  "pattern": zod.enum(['none', 'pin_bar_bullish', 'pin_bar_bearish', 'engulfing_bullish', 'engulfing_bearish', 'doji']).optional(),
   "candles": zod.array(zod.object({
   "timestamp": zod.number(),
   "open": zod.number(),
@@ -71,7 +73,10 @@ export const GetPairDetailResponse = zod.object({
   "strength": zod.number(),
   "volSum": zod.number().nullish(),
   "firstBar": zod.number().optional(),
-  "lastTouch": zod.number().optional()
+  "lastTouch": zod.number().optional(),
+  "rating": zod.number().describe('1-5 star rating: touches + HTF confluence'),
+  "htfConfluence": zod.boolean().describe('True if zone aligns with H1 or H4 S&R zone'),
+  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional().describe('Which higher timeframe confirms this zone')
 })),
   "supportZones": zod.array(zod.object({
   "top": zod.number(),
@@ -82,7 +87,10 @@ export const GetPairDetailResponse = zod.object({
   "strength": zod.number(),
   "volSum": zod.number().nullish(),
   "firstBar": zod.number().optional(),
-  "lastTouch": zod.number().optional()
+  "lastTouch": zod.number().optional(),
+  "rating": zod.number().describe('1-5 star rating: touches + HTF confluence'),
+  "htfConfluence": zod.boolean().describe('True if zone aligns with H1 or H4 S&R zone'),
+  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional().describe('Which higher timeframe confirms this zone')
 })),
   "updatedAt": zod.string()
 })
@@ -103,7 +111,10 @@ export const GetZonesResponseItem = zod.object({
   "strength": zod.number(),
   "volSum": zod.number().nullish(),
   "firstBar": zod.number().optional(),
-  "lastTouch": zod.number().optional()
+  "lastTouch": zod.number().optional(),
+  "rating": zod.number().describe('1-5 star rating: touches + HTF confluence'),
+  "htfConfluence": zod.boolean().describe('True if zone aligns with H1 or H4 S&R zone'),
+  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional().describe('Which higher timeframe confirms this zone')
 }),
   "priceInZone": zod.boolean(),
   "distancePct": zod.number()

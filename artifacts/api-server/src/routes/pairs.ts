@@ -2,36 +2,55 @@ import { Router } from "express";
 import { PAIRS, fetchAllPairs, fetchPairData } from "../lib/forex-fetcher";
 import { calculateZones, getPriceZoneStatus } from "../lib/sr-zones";
 import { getCurrentSession } from "../lib/session";
+import { detectPattern } from "../lib/patterns";
+import { enrichZonesWithHTF } from "../lib/htf-zones";
 
 const router = Router();
 
 router.get("/pairs", async (req, res) => {
   const all = await fetchAllPairs();
-  const result = all.map((pair) => {
-    const { resistance, support } = calculateZones(pair.candles);
-    const zoneInfo = getPriceZoneStatus(pair.currentPrice, resistance, support);
-    return {
-      symbol: pair.symbol,
-      displayName: pair.displayName,
-      currentPrice: pair.currentPrice,
-      bid: pair.bid,
-      ask: pair.ask,
-      change: pair.change,
-      changePct: pair.changePct,
-      zoneStatus: zoneInfo.status,
-      signal: zoneInfo.signal,
-      nearestResistance: zoneInfo.nearestResistance,
-      nearestSupport: zoneInfo.nearestSupport,
-      distanceToNearestZonePct: zoneInfo.distanceToNearestZonePct,
-      updatedAt: new Date().toISOString(),
-    };
-  });
-  res.json(result);
+
+  const results = await Promise.all(
+    all.map(async (pair) => {
+      const { resistance, support } = calculateZones(pair.candles);
+      const zoneInfo = getPriceZoneStatus(pair.currentPrice, resistance, support);
+
+      // Detect candle pattern on last 2 candles in context of current zone
+      const context =
+        zoneInfo.signal === "short"
+          ? "resistance"
+          : zoneInfo.signal === "long"
+          ? "support"
+          : "any";
+      const pattern = detectPattern(pair.candles.slice(-2), context);
+
+      return {
+        symbol: pair.symbol,
+        displayName: pair.displayName,
+        currentPrice: pair.currentPrice,
+        bid: pair.bid,
+        ask: pair.ask,
+        change: pair.change,
+        changePct: pair.changePct,
+        zoneStatus: zoneInfo.status,
+        signal: zoneInfo.signal,
+        pattern,
+        nearestResistance: zoneInfo.nearestResistance,
+        nearestSupport: zoneInfo.nearestSupport,
+        distanceToNearestZonePct: zoneInfo.distanceToNearestZonePct,
+        updatedAt: new Date().toISOString(),
+      };
+    })
+  );
+
+  res.json(results);
 });
 
 router.get("/pairs/:symbol", async (req, res) => {
   const { symbol } = req.params;
-  const pairInfo = PAIRS.find((p) => p.symbol.toUpperCase() === symbol.toUpperCase());
+  const pairInfo = PAIRS.find(
+    (p) => p.symbol.toUpperCase() === symbol.toUpperCase()
+  );
   if (!pairInfo) {
     res.status(404).json({ error: "Pair not found" });
     return;
@@ -45,6 +64,21 @@ router.get("/pairs/:symbol", async (req, res) => {
   const { resistance, support } = calculateZones(data.candles);
   const zoneInfo = getPriceZoneStatus(data.currentPrice, resistance, support);
 
+  const context =
+    zoneInfo.signal === "short"
+      ? "resistance"
+      : zoneInfo.signal === "long"
+      ? "support"
+      : "any";
+  const pattern = detectPattern(data.candles.slice(-2), context);
+
+  // Enrich all zones with HTF confluence and rating
+  const allZones = [...resistance, ...support];
+  const enriched = await enrichZonesWithHTF(pairInfo.yahooSymbol, allZones);
+
+  const enrichedResistance = enriched.filter((z) => z.isResistance);
+  const enrichedSupport = enriched.filter((z) => !z.isResistance);
+
   res.json({
     symbol: pairInfo.symbol,
     displayName: pairInfo.displayName,
@@ -55,9 +89,10 @@ router.get("/pairs/:symbol", async (req, res) => {
     changePct: data.changePct,
     zoneStatus: zoneInfo.status,
     signal: zoneInfo.signal,
+    pattern,
     candles: data.candles.slice(-200),
-    resistanceZones: resistance,
-    supportZones: support,
+    resistanceZones: enrichedResistance,
+    supportZones: enrichedSupport,
     updatedAt: new Date().toISOString(),
   });
 });
@@ -70,12 +105,14 @@ router.get("/zones", async (req, res) => {
     const { resistance, support } = calculateZones(pair.candles);
     const allZones = [...resistance, ...support];
     for (const zone of allZones) {
-      const priceInZone = pair.currentPrice >= zone.bot && pair.currentPrice <= zone.top;
-      const distancePct = Math.abs(pair.currentPrice - zone.center) / pair.currentPrice * 100;
+      const priceInZone =
+        pair.currentPrice >= zone.bot && pair.currentPrice <= zone.top;
+      const distancePct =
+        (Math.abs(pair.currentPrice - zone.center) / pair.currentPrice) * 100;
       zonesResult.push({
         symbol: pair.symbol,
         displayName: pair.displayName,
-        zone,
+        zone: { ...zone, rating: 1, htfConfluence: false, htfLevel: "none" },
         priceInZone,
         distancePct,
       });
@@ -99,6 +136,9 @@ router.get("/alerts", async (req, res) => {
         (z) => pair.currentPrice >= z.bot && pair.currentPrice <= z.top
       );
       if (zone) {
+        const context = zoneInfo.signal === "short" ? "resistance" : "support";
+        const pattern = detectPattern(pair.candles.slice(-2), context);
+
         alerts.push({
           symbol: pair.symbol,
           displayName: pair.displayName,
@@ -136,9 +176,16 @@ router.get("/market-summary", async (req, res) => {
     const { resistance, support } = calculateZones(pair.candles);
     const zoneInfo = getPriceZoneStatus(pair.currentPrice, resistance, support);
 
-    if (zoneInfo.status === "resistance") { pairsInResistance++; activeAlerts++; }
-    else if (zoneInfo.status === "support") { pairsInSupport++; activeAlerts++; }
-    else if (zoneInfo.status === "near_resistance" || zoneInfo.status === "near_support") {
+    if (zoneInfo.status === "resistance") {
+      pairsInResistance++;
+      activeAlerts++;
+    } else if (zoneInfo.status === "support") {
+      pairsInSupport++;
+      activeAlerts++;
+    } else if (
+      zoneInfo.status === "near_resistance" ||
+      zoneInfo.status === "near_support"
+    ) {
       pairsNearZone++;
     }
   }

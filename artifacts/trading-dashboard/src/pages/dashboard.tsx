@@ -1,11 +1,14 @@
-import { useGetPairs } from "@workspace/api-client-react";
+import { useGetPairs, useGetAlerts } from "@workspace/api-client-react";
 import { PairCard } from "@/components/pair-card";
 import { Loader2 } from "lucide-react";
+import { useSoundAlert } from "@/hooks/use-sound-alert";
 
 export default function Dashboard() {
   const { data: pairs, isLoading } = useGetPairs({
-    query: { refetchInterval: 5000 }
+    query: { refetchInterval: 5000 },
   });
+  const { data: alerts } = useGetAlerts({ query: { refetchInterval: 5000 } });
+  useSoundAlert(alerts);
 
   if (isLoading) {
     return (
@@ -30,7 +33,7 @@ export default function Dashboard() {
           LIVE
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {pairs.map((pair) => (
           <PairCard key={pair.symbol} pair={pair} />

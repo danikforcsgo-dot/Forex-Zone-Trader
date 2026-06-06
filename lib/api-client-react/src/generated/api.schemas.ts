@@ -32,6 +32,21 @@ export const PairSummarySignal = {
   long: 'long',
 } as const;
 
+/**
+ * Candlestick pattern detected on the last candle near/in the zone
+ */
+export type PairSummaryPattern = typeof PairSummaryPattern[keyof typeof PairSummaryPattern];
+
+
+export const PairSummaryPattern = {
+  none: 'none',
+  pin_bar_bullish: 'pin_bar_bullish',
+  pin_bar_bearish: 'pin_bar_bearish',
+  engulfing_bullish: 'engulfing_bullish',
+  engulfing_bearish: 'engulfing_bearish',
+  doji: 'doji',
+} as const;
+
 export interface PairSummary {
   /** e.g. GBPUSD */
   symbol: string;
@@ -51,6 +66,8 @@ export interface PairSummary {
   nearestSupport?: number | null;
   /** @nullable */
   distanceToNearestZonePct?: number | null;
+  /** Candlestick pattern detected on the last candle near/in the zone */
+  pattern?: PairSummaryPattern;
   updatedAt: string;
 }
 
@@ -63,6 +80,19 @@ export interface Candle {
   volume: number;
 }
 
+/**
+ * Which higher timeframe confirms this zone
+ */
+export type ZoneHtfLevel = typeof ZoneHtfLevel[keyof typeof ZoneHtfLevel];
+
+
+export const ZoneHtfLevel = {
+  none: 'none',
+  H1: 'H1',
+  H4: 'H4',
+  H1_H4: 'H1_H4',
+} as const;
+
 export interface Zone {
   top: number;
   bot: number;
@@ -74,6 +104,12 @@ export interface Zone {
   volSum?: number | null;
   firstBar?: number;
   lastTouch?: number;
+  /** 1-5 star rating: touches + HTF confluence */
+  rating: number;
+  /** True if zone aligns with H1 or H4 S&R zone */
+  htfConfluence: boolean;
+  /** Which higher timeframe confirms this zone */
+  htfLevel?: ZoneHtfLevel;
 }
 
 export type PairDetailZoneStatus = typeof PairDetailZoneStatus[keyof typeof PairDetailZoneStatus];
@@ -96,6 +132,18 @@ export const PairDetailSignal = {
   long: 'long',
 } as const;
 
+export type PairDetailPattern = typeof PairDetailPattern[keyof typeof PairDetailPattern];
+
+
+export const PairDetailPattern = {
+  none: 'none',
+  pin_bar_bullish: 'pin_bar_bullish',
+  pin_bar_bearish: 'pin_bar_bearish',
+  engulfing_bullish: 'engulfing_bullish',
+  engulfing_bearish: 'engulfing_bearish',
+  doji: 'doji',
+} as const;
+
 export interface PairDetail {
   symbol: string;
   displayName: string;
@@ -106,6 +154,7 @@ export interface PairDetail {
   changePct: number;
   zoneStatus: PairDetailZoneStatus;
   signal: PairDetailSignal;
+  pattern?: PairDetailPattern;
   candles: Candle[];
   resistanceZones: Zone[];
   supportZones: Zone[];

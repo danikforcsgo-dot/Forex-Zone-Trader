@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Candle } from './candle';
+import type { PairDetailPattern } from './pairDetailPattern';
 import type { PairDetailSignal } from './pairDetailSignal';
 import type { PairDetailZoneStatus } from './pairDetailZoneStatus';
 import type { Zone } from './zone';
@@ -20,6 +21,7 @@ export interface PairDetail {
   changePct: number;
   zoneStatus: PairDetailZoneStatus;
   signal: PairDetailSignal;
+  pattern?: PairDetailPattern;
   candles: Candle[];
   resistanceZones: Zone[];
   supportZones: Zone[];

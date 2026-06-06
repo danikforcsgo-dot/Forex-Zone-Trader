@@ -5,6 +5,7 @@
  * Forex Trading Dashboard API
  * OpenAPI spec version: 0.1.0
  */
+import type { PairSummaryPattern } from './pairSummaryPattern';
 import type { PairSummarySignal } from './pairSummarySignal';
 import type { PairSummaryZoneStatus } from './pairSummaryZoneStatus';
 
@@ -27,5 +28,7 @@ export interface PairSummary {
   nearestSupport?: number | null;
   /** @nullable */
   distanceToNearestZonePct?: number | null;
+  /** Candlestick pattern detected on the last candle near/in the zone */
+  pattern?: PairSummaryPattern;
   updatedAt: string;
 }
