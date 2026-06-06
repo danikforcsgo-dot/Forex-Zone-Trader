@@ -1,22 +1,27 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Forex Trading Dashboard API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: pairs
+    description: Forex pairs monitoring
+  - name: zones
+    description: Support and Resistance zones
+  - name: alerts
+    description: Zone alerts
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +29,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /pairs:
+    get:
+      operationId: getPairs
+      tags: [pairs]
+      summary: Get all monitored forex pairs with current price and zone status
+      responses:
+        "200":
+          description: List of pairs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PairSummary"
+
+  /pairs/{symbol}:
+    get:
+      operationId: getPairDetail
+      tags: [pairs]
+      summary: Get detailed data for a specific pair including candles and S&R zones
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pair detail with candles and zones
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PairDetail"
+        "404":
+          description: Pair not found
+
+  /zones:
+    get:
+      operationId: getZones
+      tags: [zones]
+      summary: Get all active S&R zones across all pairs
+      responses:
+        "200":
+          description: All active zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ZoneInfo"
+
+  /alerts:
+    get:
+      operationId: getAlerts
+      tags: [alerts]
+      summary: Get pairs where price is currently inside or very near a S&R zone
+      responses:
+        "200":
+          description: Active alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /market-summary:
+    get:
+      operationId: getMarketSummary
+      tags: [pairs]
+      summary: Get overall market summary — how many pairs are in zones, session info
+      responses:
+        "200":
+          description: Market summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +119,241 @@ components:
       required:
         - status
 
+    PairSummary:
+      type: object
+      required:
+        - symbol
+        - displayName
+        - currentPrice
+        - bid
+        - ask
+        - change
+        - changePct
+        - zoneStatus
+        - signal
+        - updatedAt
+      properties:
+        symbol:
+          type: string
+          description: "e.g. GBPUSD"
+        displayName:
+          type: string
+          description: "e.g. GBP/USD"
+        currentPrice:
+          type: number
+        bid:
+          type: number
+        ask:
+          type: number
+        change:
+          type: number
+        changePct:
+          type: number
+        zoneStatus:
+          type: string
+          enum: [neutral, resistance, support, near_resistance, near_support]
+        signal:
+          type: string
+          enum: [none, short, long]
+          description: none=no signal, short=price in resistance zone, long=price in support zone
+        nearestResistance:
+          type: ["number", "null"]
+        nearestSupport:
+          type: ["number", "null"]
+        distanceToNearestZonePct:
+          type: ["number", "null"]
+        updatedAt:
+          type: string
+
+    Candle:
+      type: object
+      required:
+        - timestamp
+        - open
+        - high
+        - low
+        - close
+        - volume
+      properties:
+        timestamp:
+          type: integer
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+
+    Zone:
+      type: object
+      required:
+        - top
+        - bot
+        - center
+        - isResistance
+        - touches
+        - strength
+      properties:
+        top:
+          type: number
+        bot:
+          type: number
+        center:
+          type: number
+        isResistance:
+          type: boolean
+        touches:
+          type: integer
+        strength:
+          type: number
+        volSum:
+          type: ["number", "null"]
+        firstBar:
+          type: integer
+        lastTouch:
+          type: integer
+
+    PairDetail:
+      type: object
+      required:
+        - symbol
+        - displayName
+        - currentPrice
+        - bid
+        - ask
+        - change
+        - changePct
+        - zoneStatus
+        - signal
+        - candles
+        - resistanceZones
+        - supportZones
+        - updatedAt
+      properties:
+        symbol:
+          type: string
+        displayName:
+          type: string
+        currentPrice:
+          type: number
+        bid:
+          type: number
+        ask:
+          type: number
+        change:
+          type: number
+        changePct:
+          type: number
+        zoneStatus:
+          type: string
+          enum: [neutral, resistance, support, near_resistance, near_support]
+        signal:
+          type: string
+          enum: [none, short, long]
+        candles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Candle"
+        resistanceZones:
+          type: array
+          items:
+            $ref: "#/components/schemas/Zone"
+        supportZones:
+          type: array
+          items:
+            $ref: "#/components/schemas/Zone"
+        updatedAt:
+          type: string
+
+    ZoneInfo:
+      type: object
+      required:
+        - symbol
+        - displayName
+        - zone
+        - priceInZone
+        - distancePct
+      properties:
+        symbol:
+          type: string
+        displayName:
+          type: string
+        zone:
+          $ref: "#/components/schemas/Zone"
+        priceInZone:
+          type: boolean
+        distancePct:
+          type: number
+
+    Alert:
+      type: object
+      required:
+        - symbol
+        - displayName
+        - signal
+        - zoneStatus
+        - currentPrice
+        - zoneTop
+        - zoneBot
+        - zoneCenter
+        - strength
+        - message
+        - triggeredAt
+      properties:
+        symbol:
+          type: string
+        displayName:
+          type: string
+        signal:
+          type: string
+          enum: [short, long]
+        zoneStatus:
+          type: string
+          enum: [resistance, support]
+        currentPrice:
+          type: number
+        zoneTop:
+          type: number
+        zoneBot:
+          type: number
+        zoneCenter:
+          type: number
+        strength:
+          type: number
+        touches:
+          type: integer
+        message:
+          type: string
+        triggeredAt:
+          type: string
+
+    MarketSummary:
+      type: object
+      required:
+        - totalPairs
+        - pairsInResistance
+        - pairsInSupport
+        - pairsNearZone
+        - activeAlerts
+        - session
+        - sessionTime
+      properties:
+        totalPairs:
+          type: integer
+        pairsInResistance:
+          type: integer
+        pairsInSupport:
+          type: integer
+        pairsNearZone:
+          type: integer
+        activeAlerts:
+          type: integer
+        session:
+          type: string
+          enum: [Sydney, Tokyo, London, New_York, Overlap_London_NY, Overlap_Tokyo_London, Closed]
+        sessionTime:
+          type: string
