@@ -6,6 +6,8 @@ export type CandlePattern =
   | "pin_bar_bearish"
   | "engulfing_bullish"
   | "engulfing_bearish"
+  | "doji_bearish"
+  | "doji_bullish"
   | "doji";
 
 /**
@@ -33,6 +35,8 @@ export function detectPattern(
 
   // --- DOJI: body < 10% of range ---
   if (bodyRatio < 0.1) {
+    if (context === "resistance") return "doji_bearish";
+    if (context === "support")    return "doji_bullish";
     return "doji";
   }
 

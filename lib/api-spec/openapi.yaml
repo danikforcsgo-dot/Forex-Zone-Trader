@@ -164,7 +164,7 @@ components:
           type: ["number", "null"]
         pattern:
           type: string
-          enum: [none, pin_bar_bullish, pin_bar_bearish, engulfing_bullish, engulfing_bearish, doji]
+          enum: [none, pin_bar_bullish, pin_bar_bearish, engulfing_bullish, engulfing_bearish, doji_bearish, doji_bullish, doji]
           description: "Candlestick pattern detected on the last candle near/in the zone"
         adrPips:
           type: ["number", "null"]

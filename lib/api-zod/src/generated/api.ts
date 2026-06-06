@@ -32,7 +32,7 @@ export const GetPairsResponseItem = zod.object({
   "nearestResistance": zod.number().nullish(),
   "nearestSupport": zod.number().nullish(),
   "distanceToNearestZonePct": zod.number().nullish(),
-  "pattern": zod.enum(['none', 'pin_bar_bullish', 'pin_bar_bearish', 'engulfing_bullish', 'engulfing_bearish', 'doji']).optional().describe('Candlestick pattern detected on the last candle near\/in the zone'),
+  "pattern": zod.enum(['none', 'pin_bar_bullish', 'pin_bar_bearish', 'engulfing_bullish', 'engulfing_bearish', 'doji_bearish', 'doji_bullish', 'doji']).optional().describe('Candlestick pattern detected on the last candle near\/in the zone'),
   "adrPips": zod.number().nullish().describe('Average Daily Range over last 14 days in pips'),
   "todayRangePips": zod.number().nullish().describe('Today\'s high-low range in pips so far'),
   "adrPercent": zod.number().nullish().describe('Percentage of ADR already consumed today (0-100+)'),

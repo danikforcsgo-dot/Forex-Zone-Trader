@@ -17,6 +17,8 @@ const CONFIG: Record<string, { label: string; color: string; Icon: typeof Trendi
   pin_bar_bearish:    { label: "Пин-бар ↓",     color: "bg-destructive/20 text-destructive border border-destructive/40", Icon: TrendingDown },
   engulfing_bullish:  { label: "Поглощение ↑",  color: "bg-success/20 text-success border border-success/40",       Icon: TrendingUp },
   engulfing_bearish:  { label: "Поглощение ↓",  color: "bg-destructive/20 text-destructive border border-destructive/40", Icon: TrendingDown },
+  doji_bearish:       { label: "Доджи у сопротивления → разворот вниз (шорт)", color: "bg-destructive/20 text-destructive border border-destructive/40", Icon: TrendingDown },
+  doji_bullish:       { label: "Доджи у поддержки → разворот вверх (лонг)",    color: "bg-success/20 text-success border border-success/40",             Icon: TrendingUp },
   doji:               { label: "Доджи",          color: "bg-warning/20 text-warning border border-warning/40",       Icon: Minus },
 };
 
