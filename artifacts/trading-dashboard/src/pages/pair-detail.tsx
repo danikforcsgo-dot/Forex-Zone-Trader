@@ -11,7 +11,7 @@ export default function PairDetail() {
     query: { 
       enabled: !!symbol, 
       queryKey: getGetPairDetailQueryKey(symbol || ""),
-      refetchInterval: 30000 
+      refetchInterval: 5000 
     }
   });
 

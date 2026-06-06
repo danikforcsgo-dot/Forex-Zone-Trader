@@ -4,7 +4,7 @@ import { Link } from "wouter";
 
 export function AlertBanner() {
   const { data: alerts } = useGetAlerts({
-    query: { refetchInterval: 30000 }
+    query: { refetchInterval: 5000 }
   });
 
   if (!alerts || alerts.length === 0) return null;

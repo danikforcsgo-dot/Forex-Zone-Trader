@@ -3,7 +3,7 @@ import { Clock, Globe, Activity, AlertTriangle } from "lucide-react";
 
 export function MarketSummaryBar() {
   const { data: summary, isLoading } = useGetMarketSummary({
-    query: { refetchInterval: 30000 }
+    query: { refetchInterval: 5000 }
   });
 
   if (isLoading || !summary) {

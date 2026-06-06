@@ -34,7 +34,7 @@ export interface ForexQuote {
 
 // Cache to avoid hammering Yahoo Finance
 const cache: Map<string, { data: ForexQuote; ts: number }> = new Map();
-const CACHE_TTL_MS = 30_000; // 30 seconds
+const CACHE_TTL_MS = 5_000; // 5 seconds
 
 export async function fetchPairData(yahooSymbol: string): Promise<ForexQuote | null> {
   const cached = cache.get(yahooSymbol);

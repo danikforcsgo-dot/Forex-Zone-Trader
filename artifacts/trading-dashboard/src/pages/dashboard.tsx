@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 
 export default function Dashboard() {
   const { data: pairs, isLoading } = useGetPairs({
-    query: { refetchInterval: 30000 }
+    query: { refetchInterval: 5000 }
   });
 
   if (isLoading) {
