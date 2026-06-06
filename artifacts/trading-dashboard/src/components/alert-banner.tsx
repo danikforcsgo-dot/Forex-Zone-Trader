@@ -1,5 +1,5 @@
 import { useGetAlerts } from "@workspace/api-client-react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
 
 export function AlertBanner() {
@@ -11,35 +11,40 @@ export function AlertBanner() {
 
   return (
     <div className="bg-card border-b border-border">
-      {alerts.map((alert, i) => (
-        <div 
-          key={`${alert.symbol}-${i}`}
-          className={`px-4 py-3 flex items-center justify-between border-l-4 ${
-            alert.signal === "short" 
-              ? "bg-destructive/10 border-destructive text-destructive-foreground" 
-              : "bg-success/10 border-success text-success-foreground"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <AlertCircle className={`w-5 h-5 ${alert.signal === "short" ? "text-destructive" : "text-success"}`} />
-            <span className="font-bold text-lg tracking-wider">{alert.displayName}</span>
-            <span className="text-sm opacity-90 hidden sm:inline">{alert.message}</span>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs opacity-70">СИГНАЛ</div>
-              <div className={`font-bold uppercase tracking-widest ${alert.signal === "short" ? "text-destructive" : "text-success"}`}>
-                {alert.signal === "short" ? "ПРОДАЖА (SHORT)" : "ПОКУПКА (LONG)"}
-              </div>
+      {alerts.map((alert, i) => {
+        const isShort = alert.signal === "short";
+        return (
+          <div
+            key={`${alert.symbol}-${i}`}
+            className={`px-4 py-2.5 flex items-center justify-between border-l-4 ${
+              isShort
+                ? "bg-destructive/10 border-destructive"
+                : "bg-success/10 border-success"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <AlertCircle className={`w-4 h-4 flex-shrink-0 ${isShort ? "text-destructive" : "text-success"}`} />
+              <span className={`font-bold text-base tracking-wider ${isShort ? "text-destructive" : "text-success"}`}>
+                {alert.displayName}
+              </span>
+              <span className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded ${
+                isShort ? "bg-destructive/20 text-destructive" : "bg-success/20 text-success"
+              }`}>
+                {isShort ? "ПРОДАЖА" : "ПОКУПКА"}
+              </span>
+              <span className="text-xs text-muted-foreground hidden md:inline">{alert.message}</span>
             </div>
-            
-            <Link href={`/pair/${alert.symbol}`} className="bg-background/50 hover:bg-background/80 px-4 py-2 rounded text-sm font-bold transition-colors">
-              ТЕРМИНАЛ
+
+            <Link
+              href={`/pair/${alert.symbol}`}
+              className="flex items-center gap-1.5 bg-background/60 hover:bg-background/90 px-3 py-1.5 rounded text-xs font-bold transition-colors text-foreground"
+            >
+              <ExternalLink className="w-3 h-3" />
+              ОТКРЫТЬ
             </Link>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

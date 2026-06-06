@@ -1,12 +1,13 @@
+export function priceDecimals(symbol: string): number {
+  return symbol.toUpperCase().includes("JPY") ? 3 : 5;
+}
+
 export function formatPrice(price: number, symbol: string): string {
-  const isJpy = symbol.toUpperCase().includes("JPY");
-  return price.toFixed(isJpy ? 3 : 5);
+  return price.toFixed(priceDecimals(symbol));
 }
 
 export function formatChange(change: number, symbol: string): string {
-  const isJpy = symbol.toUpperCase().includes("JPY");
-  const decimals = isJpy ? 3 : 5;
-  return (change > 0 ? "+" : "") + change.toFixed(decimals);
+  return (change > 0 ? "+" : "") + change.toFixed(priceDecimals(symbol));
 }
 
 export const ZONE_STATUS_RU: Record<string, string> = {

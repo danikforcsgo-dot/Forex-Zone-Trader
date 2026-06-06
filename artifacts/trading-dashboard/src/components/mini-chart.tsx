@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { PairDetail, Zone } from "@workspace/api-client-react";
+import { priceDecimals } from "@/lib/format";
 
 interface MiniChartProps {
   detail: PairDetail;
@@ -204,7 +205,7 @@ export function MiniChart({ detail }: MiniChartProps) {
               x={size.w - PAD.right + 5} y={scales.yScale(detail.currentPrice) + 4}
               fill="#0d1117" fontSize={10} fontFamily="monospace" fontWeight="bold"
             >
-              {detail.currentPrice.toFixed(5)}
+              {detail.currentPrice.toFixed(priceDecimals(detail.symbol))}
             </text>
 
             {/* Y axis labels */}
@@ -213,7 +214,7 @@ export function MiniChart({ detail }: MiniChartProps) {
                 x={size.w - PAD.right + 4} y={scales.yScale(price) + 4}
                 fill="#4a5568" fontSize={10} fontFamily="monospace"
               >
-                {price.toFixed(5)}
+                {price.toFixed(priceDecimals(detail.symbol))}
               </text>
             ))}
 
@@ -257,7 +258,7 @@ export function MiniChart({ detail }: MiniChartProps) {
                         {label as string}:
                       </text>
                       <text x={tx + 26} y={ty + 42 + idx * 16} fill={clr as string} fontSize={10} fontFamily="monospace">
-                        {(val as number).toFixed(5)}
+                        {(val as number).toFixed(priceDecimals(detail.symbol))}
                       </text>
                     </g>
                   ))}
