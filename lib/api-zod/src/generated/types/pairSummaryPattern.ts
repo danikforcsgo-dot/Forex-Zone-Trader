@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * Candlestick pattern detected on the last candle near/in the zone
- */
 export type PairSummaryPattern = typeof PairSummaryPattern[keyof typeof PairSummaryPattern];
 
 

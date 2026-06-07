@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * Daily timeframe trend bias
- */
 export type PairDetailDailyBias = typeof PairDetailDailyBias[keyof typeof PairDetailDailyBias];
 
 

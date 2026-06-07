@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * none=no signal, short=price in resistance zone, long=price in support zone
- */
 export type PairSummarySignal = typeof PairSummarySignal[keyof typeof PairSummarySignal];
 
 

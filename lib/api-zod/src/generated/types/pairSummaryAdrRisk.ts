@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * low<50%, medium 50-70%, high 70-90%, very_high>90%
- */
 export type PairSummaryAdrRisk = typeof PairSummaryAdrRisk[keyof typeof PairSummaryAdrRisk];
 
 

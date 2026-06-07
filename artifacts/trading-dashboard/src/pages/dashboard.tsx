@@ -1,6 +1,7 @@
 import { useGetPairs, useGetAlerts } from "@workspace/api-client-react";
 import { PairCard } from "@/components/pair-card";
-import { Loader2 } from "lucide-react";
+import { EconomicCalendar } from "@/components/economic-calendar";
+import { Loader2, CalendarDays } from "lucide-react";
 import { useSoundAlert } from "@/hooks/use-sound-alert";
 
 export default function Dashboard() {
@@ -38,6 +39,15 @@ export default function Dashboard() {
         {pairs.map((pair) => (
           <PairCard key={pair.symbol} pair={pair} />
         ))}
+      </div>
+
+      {/* Economic Calendar */}
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+          <CalendarDays className="w-4 h-4" />
+          Экономический Календарь — Эта Неделя (HIGH + MEDIUM)
+        </h2>
+        <EconomicCalendar />
       </div>
     </div>
   );

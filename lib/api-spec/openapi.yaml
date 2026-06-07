@@ -15,6 +15,8 @@ tags:
     description: Support and Resistance zones
   - name: alerts
     description: Zone alerts
+  - name: calendar
+    description: Economic calendar
 
 paths:
   /healthz:
@@ -109,6 +111,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/MarketSummary"
 
+  /calendar:
+    get:
+      operationId: getCalendar
+      tags: [calendar]
+      summary: Get this week's high-impact economic events for our currency pairs
+      responses:
+        "200":
+          description: Economic calendar events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CalendarEvent"
+
 components:
   schemas:
     HealthStatus:
@@ -155,7 +172,6 @@ components:
         signal:
           type: string
           enum: [none, short, long]
-          description: none=no signal, short=price in resistance zone, long=price in support zone
         nearestResistance:
           type: ["number", "null"]
         nearestSupport:
@@ -165,34 +181,25 @@ components:
         pattern:
           type: string
           enum: [none, pin_bar_bullish, pin_bar_bearish, engulfing_bullish, engulfing_bearish, doji_bearish, doji_bullish, doji]
-          description: "Candlestick pattern detected on the last candle near/in the zone"
         adrPips:
           type: ["number", "null"]
-          description: "Average Daily Range over last 14 days in pips"
         todayRangePips:
           type: ["number", "null"]
-          description: "Today's high-low range in pips so far"
         adrPercent:
           type: ["number", "null"]
-          description: "Percentage of ADR already consumed today (0-100+)"
         adrRisk:
           type: string
           enum: [low, medium, high, very_high, unknown]
-          description: "low<50%, medium 50-70%, high 70-90%, very_high>90%"
         dailyBias:
           type: string
           enum: [bullish, bearish, neutral]
-          description: "Daily timeframe trend bias based on EMA20/50"
         ema50:
           type: ["number", "null"]
-          description: "Current EMA 50 on M15"
         ema200:
           type: ["number", "null"]
-          description: "Current EMA 200 on M15"
         trend:
           type: string
           enum: [up, down, range]
-          description: "M15 market structure trend"
         updatedAt:
           type: string
 
@@ -272,6 +279,86 @@ components:
             timestamp:
               type: integer
 
+    VpBin:
+      type: object
+      required:
+        - priceMid
+        - normalizedVol
+        - isPoc
+        - isValueArea
+      properties:
+        priceMid:
+          type: number
+        normalizedVol:
+          type: number
+        isPoc:
+          type: boolean
+        isValueArea:
+          type: boolean
+
+    VolumeProfile:
+      type: object
+      required:
+        - poc
+        - vah
+        - val
+        - bins
+      properties:
+        poc:
+          type: number
+          description: "Point of Control — price level with highest volume"
+        vah:
+          type: number
+          description: "Value Area High (70% of volume)"
+        val:
+          type: number
+          description: "Value Area Low (70% of volume)"
+        bins:
+          type: array
+          items:
+            $ref: "#/components/schemas/VpBin"
+
+    OrderBlock:
+      type: object
+      required:
+        - top
+        - bot
+        - isBullish
+        - timestamp
+        - mitigated
+      properties:
+        top:
+          type: number
+        bot:
+          type: number
+        isBullish:
+          type: boolean
+          description: "Bullish OB = potential buy zone; Bearish OB = potential sell zone"
+        timestamp:
+          type: integer
+        mitigated:
+          type: boolean
+          description: "True if price has already returned through the OB"
+
+    LiquidityGrab:
+      type: object
+      required:
+        - price
+        - isBuySide
+        - timestamp
+        - wickExtent
+      properties:
+        price:
+          type: number
+          description: "The swing level that was swept"
+        isBuySide:
+          type: boolean
+          description: "True = buy-side liquidity was grabbed (wick above swing high)"
+        timestamp:
+          type: integer
+        wickExtent:
+          type: number
+
     Zone:
       type: object
       required:
@@ -304,23 +391,17 @@ components:
           type: integer
         rating:
           type: integer
-          description: "1-5 star rating: touches + HTF confluence"
         htfConfluence:
           type: boolean
-          description: "True if zone aligns with H1 or H4 S&R zone"
         htfLevel:
           type: string
           enum: [none, H1, H4, H1_H4]
-          description: "Which higher timeframe confirms this zone"
         probabilityScore:
           type: ["integer", "null"]
-          description: "Zone quality score 0-100"
         nearRoundNumber:
           type: ["boolean", "null"]
-          description: "True if zone center is near a psychological level (.00 or .50)"
         ageBars:
           type: ["integer", "null"]
-          description: "Number of M15 bars since last touch"
 
     PairDetail:
       type: object
@@ -390,23 +471,18 @@ components:
         dailyBias:
           type: string
           enum: [bullish, bearish, neutral]
-          description: "Daily timeframe trend bias"
         ema50:
           type: ["number", "null"]
-          description: "Current EMA 50 on M15"
         ema200:
           type: ["number", "null"]
-          description: "Current EMA 200 on M15"
         ema50Values:
           type: array
           items:
             type: number
-          description: "EMA 50 values aligned with candles (last 200)"
         ema200Values:
           type: array
           items:
             type: number
-          description: "EMA 200 values aligned with candles (last 200)"
         trend:
           type: string
           enum: [up, down, range]
@@ -420,7 +496,16 @@ components:
           type: array
           items:
             type: number
-          description: "Round number levels near current price"
+        volumeProfile:
+          $ref: "#/components/schemas/VolumeProfile"
+        orderBlocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderBlock"
+        liquidityGrabs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiquidityGrab"
         updatedAt:
           type: string
 
@@ -514,13 +599,35 @@ components:
           type: string
         isKillZone:
           type: boolean
-          description: "True if current UTC time is in a high-probability kill zone"
         killZoneName:
           type: ["string", "null"]
-          description: "Name of the current kill zone if active"
         dayOfWeek:
           type: integer
-          description: "Day of week 0=Sun 6=Sat"
         dayWarning:
           type: ["string", "null"]
-          description: "Warning for Monday/Friday trading"
+
+    CalendarEvent:
+      type: object
+      required:
+        - title
+        - country
+        - date
+        - impact
+      properties:
+        title:
+          type: string
+        country:
+          type: string
+          description: "Currency code e.g. USD, GBP"
+        date:
+          type: string
+          description: "ISO datetime string"
+        impact:
+          type: string
+          enum: [High, Medium, Low, Holiday, Non-Economic]
+        forecast:
+          type: string
+        previous:
+          type: string
+        actual:
+          type: string

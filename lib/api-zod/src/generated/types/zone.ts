@@ -18,25 +18,13 @@ export interface Zone {
   volSum?: number | null;
   firstBar?: number;
   lastTouch?: number;
-  /** 1-5 star rating: touches + HTF confluence */
   rating: number;
-  /** True if zone aligns with H1 or H4 S&R zone */
   htfConfluence: boolean;
-  /** Which higher timeframe confirms this zone */
   htfLevel?: ZoneHtfLevel;
-  /**
-     * Zone quality score 0-100
-     * @nullable
-     */
+  /** @nullable */
   probabilityScore?: number | null;
-  /**
-     * True if zone center is near a psychological level (.00 or .50)
-     * @nullable
-     */
+  /** @nullable */
   nearRoundNumber?: boolean | null;
-  /**
-     * Number of M15 bars since last touch
-     * @nullable
-     */
+  /** @nullable */
   ageBars?: number | null;
 }

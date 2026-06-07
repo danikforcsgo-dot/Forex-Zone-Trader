@@ -9,15 +9,22 @@ import { calcEMA, fetchDailyCandles, calcDailyBias } from "../lib/ema";
 import { analyzeMarketStructure } from "../lib/market-structure";
 import { detectFVGs } from "../lib/fvg";
 import { calcZoneProbability, findPsychologicalLevels } from "../lib/probability";
+import { calcVolumeProfile } from "../lib/volume-profile";
+import { analyzeSmc } from "../lib/smc";
 
 const router = Router();
 
-/** Kill zones (UTC hours, inclusive start exclusive end) */
-function getKillZone(utcHour: number, utcMin: number): { isKillZone: boolean; killZoneName: string | null } {
+function getKillZone(
+  utcHour: number,
+  utcMin: number
+): { isKillZone: boolean; killZoneName: string | null } {
   const t = utcHour + utcMin / 60;
-  if (t >= 2 && t < 5)   return { isKillZone: true, killZoneName: "Азиатская Kill Zone (02:00–05:00)" };
-  if (t >= 7 && t < 9)   return { isKillZone: true, killZoneName: "Лондонская Kill Zone (07:00–09:00)" };
-  if (t >= 12 && t < 14) return { isKillZone: true, killZoneName: "Нью-Йоркская Kill Zone (12:00–14:00)" };
+  if (t >= 2 && t < 5)
+    return { isKillZone: true, killZoneName: "Азиатская Kill Zone (02:00–05:00)" };
+  if (t >= 7 && t < 9)
+    return { isKillZone: true, killZoneName: "Лондонская Kill Zone (07:00–09:00)" };
+  if (t >= 12 && t < 14)
+    return { isKillZone: true, killZoneName: "Нью-Йоркская Kill Zone (12:00–14:00)" };
   return { isKillZone: false, killZoneName: null };
 }
 
@@ -30,8 +37,11 @@ router.get("/pairs", async (req, res) => {
       const zoneInfo = getPriceZoneStatus(pair.currentPrice, resistance, support);
 
       const context =
-        zoneInfo.signal === "short" ? "resistance" :
-        zoneInfo.signal === "long"  ? "support" : "any";
+        zoneInfo.signal === "short"
+          ? "resistance"
+          : zoneInfo.signal === "long"
+          ? "support"
+          : "any";
       const pattern = detectPattern(pair.candles.slice(-2), context);
 
       const [adr, dailyCandles] = await Promise.all([
@@ -82,17 +92,26 @@ router.get("/pairs/:symbol", async (req, res) => {
   const pairInfo = PAIRS.find(
     (p) => p.symbol.toUpperCase() === symbol.toUpperCase()
   );
-  if (!pairInfo) { res.status(404).json({ error: "Pair not found" }); return; }
+  if (!pairInfo) {
+    res.status(404).json({ error: "Pair not found" });
+    return;
+  }
 
   const data = await fetchPairData(pairInfo.yahooSymbol);
-  if (!data) { res.status(404).json({ error: "Could not fetch pair data" }); return; }
+  if (!data) {
+    res.status(404).json({ error: "Could not fetch pair data" });
+    return;
+  }
 
   const { resistance, support } = calculateZones(data.candles);
   const zoneInfo = getPriceZoneStatus(data.currentPrice, resistance, support);
 
   const context =
-    zoneInfo.signal === "short" ? "resistance" :
-    zoneInfo.signal === "long"  ? "support" : "any";
+    zoneInfo.signal === "short"
+      ? "resistance"
+      : zoneInfo.signal === "long"
+      ? "support"
+      : "any";
   const pattern = detectPattern(data.candles.slice(-2), context);
 
   const [enriched, adr, dailyCandles] = await Promise.all([
@@ -104,6 +123,8 @@ router.get("/pairs/:symbol", async (req, res) => {
   const dailyBias = calcDailyBias(dailyCandles, data.currentPrice);
   const ms = analyzeMarketStructure(data.candles);
   const fvgs = detectFVGs(data.candles, 5);
+  const smc = analyzeSmc(data.candles);
+  const volumeProfile = calcVolumeProfile(data.candles.slice(-200));
 
   const ema50Arr = calcEMA(data.candles, 50);
   const ema200Arr = calcEMA(data.candles, 200);
@@ -113,9 +134,12 @@ router.get("/pairs/:symbol", async (req, res) => {
   const ema50 = ema50Arr[ema50Arr.length - 1] ?? null;
   const ema200 = ema200Arr[ema200Arr.length - 1] ?? null;
 
-  const psychologicalLevels = findPsychologicalLevels(data.currentPrice, pairInfo.symbol, 6);
+  const psychologicalLevels = findPsychologicalLevels(
+    data.currentPrice,
+    pairInfo.symbol,
+    6
+  );
 
-  // Enrich zones with probability scores
   const enrichedWithProb = enriched.map((z) => {
     const { probabilityScore, nearRoundNumber, ageBars } = calcZoneProbability(
       z,
@@ -163,6 +187,9 @@ router.get("/pairs/:symbol", async (req, res) => {
       choch: ms.choch,
     },
     psychologicalLevels,
+    volumeProfile,
+    orderBlocks: smc.orderBlocks,
+    liquidityGrabs: smc.liquidityGrabs,
     updatedAt: new Date().toISOString(),
   });
 });
@@ -173,12 +200,16 @@ router.get("/zones", async (req, res) => {
   for (const pair of all) {
     const { resistance, support } = calculateZones(pair.candles);
     for (const zone of [...resistance, ...support]) {
-      const priceInZone = pair.currentPrice >= zone.bot && pair.currentPrice <= zone.top;
-      const distancePct = (Math.abs(pair.currentPrice - zone.center) / pair.currentPrice) * 100;
+      const priceInZone =
+        pair.currentPrice >= zone.bot && pair.currentPrice <= zone.top;
+      const distancePct =
+        (Math.abs(pair.currentPrice - zone.center) / pair.currentPrice) * 100;
       zonesResult.push({
-        symbol: pair.symbol, displayName: pair.displayName,
+        symbol: pair.symbol,
+        displayName: pair.displayName,
         zone: { ...zone, rating: 1, htfConfluence: false, htfLevel: "none" },
-        priceInZone, distancePct,
+        priceInZone,
+        distancePct,
       });
     }
   }
@@ -193,19 +224,27 @@ router.get("/alerts", async (req, res) => {
     const zoneInfo = getPriceZoneStatus(pair.currentPrice, resistance, support);
     if (zoneInfo.signal !== "none") {
       const zones = zoneInfo.signal === "short" ? resistance : support;
-      const zone = zones.find((z) => pair.currentPrice >= z.bot && pair.currentPrice <= z.top);
+      const zone = zones.find(
+        (z) => pair.currentPrice >= z.bot && pair.currentPrice <= z.top
+      );
       if (zone) {
         const context = zoneInfo.signal === "short" ? "resistance" : "support";
         const pattern = detectPattern(pair.candles.slice(-2), context);
         alerts.push({
-          symbol: pair.symbol, displayName: pair.displayName,
-          signal: zoneInfo.signal, zoneStatus: zoneInfo.status,
+          symbol: pair.symbol,
+          displayName: pair.displayName,
+          signal: zoneInfo.signal,
+          zoneStatus: zoneInfo.status,
           currentPrice: pair.currentPrice,
-          zoneTop: zone.top, zoneBot: zone.bot, zoneCenter: zone.center,
-          strength: zone.strength, touches: zone.touches,
-          message: zoneInfo.signal === "short"
-            ? `${pair.displayName} вошёл в зону сопротивления — сигнал ШОРТ`
-            : `${pair.displayName} вошёл в зону поддержки — сигнал ЛОНГ`,
+          zoneTop: zone.top,
+          zoneBot: zone.bot,
+          zoneCenter: zone.center,
+          strength: zone.strength,
+          touches: zone.touches,
+          message:
+            zoneInfo.signal === "short"
+              ? `${pair.displayName} вошёл в зону сопротивления — сигнал ШОРТ`
+              : `${pair.displayName} вошёл в зону поддержки — сигнал ЛОНГ`,
           triggeredAt: new Date().toISOString(),
         });
       }
@@ -221,27 +260,48 @@ router.get("/market-summary", async (req, res) => {
   const utcHour = now.getUTCHours();
   const utcMin = now.getUTCMinutes();
   const { isKillZone, killZoneName } = getKillZone(utcHour, utcMin);
-  const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, 6=Sat
+  const dayOfWeek = now.getUTCDay();
   const dayWarning =
-    dayOfWeek === 1 ? "Понедельник — осторожно, низкая ликвидность в начале дня" :
-    dayOfWeek === 5 ? "Пятница — осторожно, не держите сделки на выходных" :
-    dayOfWeek === 0 || dayOfWeek === 6 ? "Выходной — рынок закрыт" :
-    null;
+    dayOfWeek === 1
+      ? "Понедельник — осторожно, низкая ликвидность в начале дня"
+      : dayOfWeek === 5
+      ? "Пятница — осторожно, не держите сделки на выходных"
+      : dayOfWeek === 0 || dayOfWeek === 6
+      ? "Выходной — рынок закрыт"
+      : null;
 
-  let pairsInResistance = 0, pairsInSupport = 0, pairsNearZone = 0, activeAlerts = 0;
+  let pairsInResistance = 0,
+    pairsInSupport = 0,
+    pairsNearZone = 0,
+    activeAlerts = 0;
   for (const pair of all) {
     const { resistance, support } = calculateZones(pair.candles);
     const zoneInfo = getPriceZoneStatus(pair.currentPrice, resistance, support);
-    if (zoneInfo.status === "resistance") { pairsInResistance++; activeAlerts++; }
-    else if (zoneInfo.status === "support") { pairsInSupport++; activeAlerts++; }
-    else if (zoneInfo.status === "near_resistance" || zoneInfo.status === "near_support") pairsNearZone++;
+    if (zoneInfo.status === "resistance") {
+      pairsInResistance++;
+      activeAlerts++;
+    } else if (zoneInfo.status === "support") {
+      pairsInSupport++;
+      activeAlerts++;
+    } else if (
+      zoneInfo.status === "near_resistance" ||
+      zoneInfo.status === "near_support"
+    ) {
+      pairsNearZone++;
+    }
   }
   res.json({
     totalPairs: PAIRS.length,
-    pairsInResistance, pairsInSupport, pairsNearZone, activeAlerts,
-    session, sessionTime,
-    isKillZone, killZoneName,
-    dayOfWeek, dayWarning,
+    pairsInResistance,
+    pairsInSupport,
+    pairsNearZone,
+    activeAlerts,
+    session,
+    sessionTime,
+    isKillZone,
+    killZoneName,
+    dayOfWeek,
+    dayWarning,
   });
 });
 

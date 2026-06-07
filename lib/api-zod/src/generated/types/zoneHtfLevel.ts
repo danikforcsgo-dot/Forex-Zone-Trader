@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * Which higher timeframe confirms this zone
- */
 export type ZoneHtfLevel = typeof ZoneHtfLevel[keyof typeof ZoneHtfLevel];
 
 

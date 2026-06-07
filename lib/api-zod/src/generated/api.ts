@@ -28,19 +28,19 @@ export const GetPairsResponseItem = zod.object({
   "change": zod.number(),
   "changePct": zod.number(),
   "zoneStatus": zod.enum(['neutral', 'resistance', 'support', 'near_resistance', 'near_support']),
-  "signal": zod.enum(['none', 'short', 'long']).describe('none=no signal, short=price in resistance zone, long=price in support zone'),
+  "signal": zod.enum(['none', 'short', 'long']),
   "nearestResistance": zod.number().nullish(),
   "nearestSupport": zod.number().nullish(),
   "distanceToNearestZonePct": zod.number().nullish(),
-  "pattern": zod.enum(['none', 'pin_bar_bullish', 'pin_bar_bearish', 'engulfing_bullish', 'engulfing_bearish', 'doji_bearish', 'doji_bullish', 'doji']).optional().describe('Candlestick pattern detected on the last candle near\/in the zone'),
-  "adrPips": zod.number().nullish().describe('Average Daily Range over last 14 days in pips'),
-  "todayRangePips": zod.number().nullish().describe('Today\'s high-low range in pips so far'),
-  "adrPercent": zod.number().nullish().describe('Percentage of ADR already consumed today (0-100+)'),
-  "adrRisk": zod.enum(['low', 'medium', 'high', 'very_high', 'unknown']).optional().describe('low<50%, medium 50-70%, high 70-90%, very_high>90%'),
-  "dailyBias": zod.enum(['bullish', 'bearish', 'neutral']).optional().describe('Daily timeframe trend bias based on EMA20\/50'),
-  "ema50": zod.number().nullish().describe('Current EMA 50 on M15'),
-  "ema200": zod.number().nullish().describe('Current EMA 200 on M15'),
-  "trend": zod.enum(['up', 'down', 'range']).optional().describe('M15 market structure trend'),
+  "pattern": zod.enum(['none', 'pin_bar_bullish', 'pin_bar_bearish', 'engulfing_bullish', 'engulfing_bearish', 'doji_bearish', 'doji_bullish', 'doji']).optional(),
+  "adrPips": zod.number().nullish(),
+  "todayRangePips": zod.number().nullish(),
+  "adrPercent": zod.number().nullish(),
+  "adrRisk": zod.enum(['low', 'medium', 'high', 'very_high', 'unknown']).optional(),
+  "dailyBias": zod.enum(['bullish', 'bearish', 'neutral']).optional(),
+  "ema50": zod.number().nullish(),
+  "ema200": zod.number().nullish(),
+  "trend": zod.enum(['up', 'down', 'range']).optional(),
   "updatedAt": zod.string()
 })
 export const GetPairsResponse = zod.array(GetPairsResponseItem)
@@ -84,12 +84,12 @@ export const GetPairDetailResponse = zod.object({
   "volSum": zod.number().nullish(),
   "firstBar": zod.number().optional(),
   "lastTouch": zod.number().optional(),
-  "rating": zod.number().describe('1-5 star rating: touches + HTF confluence'),
-  "htfConfluence": zod.boolean().describe('True if zone aligns with H1 or H4 S&R zone'),
-  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional().describe('Which higher timeframe confirms this zone'),
-  "probabilityScore": zod.number().nullish().describe('Zone quality score 0-100'),
-  "nearRoundNumber": zod.boolean().nullish().describe('True if zone center is near a psychological level (.00 or .50)'),
-  "ageBars": zod.number().nullish().describe('Number of M15 bars since last touch')
+  "rating": zod.number(),
+  "htfConfluence": zod.boolean(),
+  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional(),
+  "probabilityScore": zod.number().nullish(),
+  "nearRoundNumber": zod.boolean().nullish(),
+  "ageBars": zod.number().nullish()
 })),
   "supportZones": zod.array(zod.object({
   "top": zod.number(),
@@ -101,22 +101,22 @@ export const GetPairDetailResponse = zod.object({
   "volSum": zod.number().nullish(),
   "firstBar": zod.number().optional(),
   "lastTouch": zod.number().optional(),
-  "rating": zod.number().describe('1-5 star rating: touches + HTF confluence'),
-  "htfConfluence": zod.boolean().describe('True if zone aligns with H1 or H4 S&R zone'),
-  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional().describe('Which higher timeframe confirms this zone'),
-  "probabilityScore": zod.number().nullish().describe('Zone quality score 0-100'),
-  "nearRoundNumber": zod.boolean().nullish().describe('True if zone center is near a psychological level (.00 or .50)'),
-  "ageBars": zod.number().nullish().describe('Number of M15 bars since last touch')
+  "rating": zod.number(),
+  "htfConfluence": zod.boolean(),
+  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional(),
+  "probabilityScore": zod.number().nullish(),
+  "nearRoundNumber": zod.boolean().nullish(),
+  "ageBars": zod.number().nullish()
 })),
   "adrPips": zod.number().nullish(),
   "todayRangePips": zod.number().nullish(),
   "adrPercent": zod.number().nullish(),
   "adrRisk": zod.enum(['low', 'medium', 'high', 'very_high', 'unknown']).optional(),
-  "dailyBias": zod.enum(['bullish', 'bearish', 'neutral']).optional().describe('Daily timeframe trend bias'),
-  "ema50": zod.number().nullish().describe('Current EMA 50 on M15'),
-  "ema200": zod.number().nullish().describe('Current EMA 200 on M15'),
-  "ema50Values": zod.array(zod.number()).optional().describe('EMA 50 values aligned with candles (last 200)'),
-  "ema200Values": zod.array(zod.number()).optional().describe('EMA 200 values aligned with candles (last 200)'),
+  "dailyBias": zod.enum(['bullish', 'bearish', 'neutral']).optional(),
+  "ema50": zod.number().nullish(),
+  "ema200": zod.number().nullish(),
+  "ema50Values": zod.array(zod.number()).optional(),
+  "ema200Values": zod.array(zod.number()).optional(),
   "trend": zod.enum(['up', 'down', 'range']).optional(),
   "fairValueGaps": zod.array(zod.object({
   "top": zod.number(),
@@ -140,7 +140,31 @@ export const GetPairDetailResponse = zod.object({
   "timestamp": zod.number().optional()
 }).nullish()
 }).optional(),
-  "psychologicalLevels": zod.array(zod.number()).optional().describe('Round number levels near current price'),
+  "psychologicalLevels": zod.array(zod.number()).optional(),
+  "volumeProfile": zod.object({
+  "poc": zod.number().describe('Point of Control — price level with highest volume'),
+  "vah": zod.number().describe('Value Area High (70% of volume)'),
+  "val": zod.number().describe('Value Area Low (70% of volume)'),
+  "bins": zod.array(zod.object({
+  "priceMid": zod.number(),
+  "normalizedVol": zod.number(),
+  "isPoc": zod.boolean(),
+  "isValueArea": zod.boolean()
+}))
+}).optional(),
+  "orderBlocks": zod.array(zod.object({
+  "top": zod.number(),
+  "bot": zod.number(),
+  "isBullish": zod.boolean().describe('Bullish OB = potential buy zone; Bearish OB = potential sell zone'),
+  "timestamp": zod.number(),
+  "mitigated": zod.boolean().describe('True if price has already returned through the OB')
+})).optional(),
+  "liquidityGrabs": zod.array(zod.object({
+  "price": zod.number().describe('The swing level that was swept'),
+  "isBuySide": zod.boolean().describe('True = buy-side liquidity was grabbed (wick above swing high)'),
+  "timestamp": zod.number(),
+  "wickExtent": zod.number()
+})).optional(),
   "updatedAt": zod.string()
 })
 
@@ -161,12 +185,12 @@ export const GetZonesResponseItem = zod.object({
   "volSum": zod.number().nullish(),
   "firstBar": zod.number().optional(),
   "lastTouch": zod.number().optional(),
-  "rating": zod.number().describe('1-5 star rating: touches + HTF confluence'),
-  "htfConfluence": zod.boolean().describe('True if zone aligns with H1 or H4 S&R zone'),
-  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional().describe('Which higher timeframe confirms this zone'),
-  "probabilityScore": zod.number().nullish().describe('Zone quality score 0-100'),
-  "nearRoundNumber": zod.boolean().nullish().describe('True if zone center is near a psychological level (.00 or .50)'),
-  "ageBars": zod.number().nullish().describe('Number of M15 bars since last touch')
+  "rating": zod.number(),
+  "htfConfluence": zod.boolean(),
+  "htfLevel": zod.enum(['none', 'H1', 'H4', 'H1_H4']).optional(),
+  "probabilityScore": zod.number().nullish(),
+  "nearRoundNumber": zod.boolean().nullish(),
+  "ageBars": zod.number().nullish()
 }),
   "priceInZone": zod.boolean(),
   "distancePct": zod.number()
@@ -205,10 +229,25 @@ export const GetMarketSummaryResponse = zod.object({
   "activeAlerts": zod.number(),
   "session": zod.enum(['Sydney', 'Tokyo', 'London', 'New_York', 'Overlap_London_NY', 'Overlap_Tokyo_London', 'Closed']),
   "sessionTime": zod.string(),
-  "isKillZone": zod.boolean().optional().describe('True if current UTC time is in a high-probability kill zone'),
-  "killZoneName": zod.string().nullish().describe('Name of the current kill zone if active'),
-  "dayOfWeek": zod.number().optional().describe('Day of week 0=Sun 6=Sat'),
-  "dayWarning": zod.string().nullish().describe('Warning for Monday\/Friday trading')
+  "isKillZone": zod.boolean().optional(),
+  "killZoneName": zod.string().nullish(),
+  "dayOfWeek": zod.number().optional(),
+  "dayWarning": zod.string().nullish()
 })
+
+
+/**
+ * @summary Get this week's high-impact economic events for our currency pairs
+ */
+export const GetCalendarResponseItem = zod.object({
+  "title": zod.string(),
+  "country": zod.string().describe('Currency code e.g. USD, GBP'),
+  "date": zod.string().describe('ISO datetime string'),
+  "impact": zod.enum(['High', 'Medium', 'Low', 'Holiday', 'Non-Economic']),
+  "forecast": zod.string().optional(),
+  "previous": zod.string().optional(),
+  "actual": zod.string().optional()
+})
+export const GetCalendarResponse = zod.array(GetCalendarResponseItem)
 
 

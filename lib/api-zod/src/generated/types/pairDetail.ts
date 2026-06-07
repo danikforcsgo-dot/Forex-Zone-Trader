@@ -7,13 +7,16 @@
  */
 import type { Candle } from './candle';
 import type { FairValueGap } from './fairValueGap';
+import type { LiquidityGrab } from './liquidityGrab';
 import type { MarketStructureInfo } from './marketStructureInfo';
+import type { OrderBlock } from './orderBlock';
 import type { PairDetailAdrRisk } from './pairDetailAdrRisk';
 import type { PairDetailDailyBias } from './pairDetailDailyBias';
 import type { PairDetailPattern } from './pairDetailPattern';
 import type { PairDetailSignal } from './pairDetailSignal';
 import type { PairDetailTrend } from './pairDetailTrend';
 import type { PairDetailZoneStatus } from './pairDetailZoneStatus';
+import type { VolumeProfile } from './volumeProfile';
 import type { Zone } from './zone';
 
 export interface PairDetail {
@@ -41,26 +44,19 @@ export interface PairDetail {
   /** @nullable */
   adrPercent?: number | null;
   adrRisk?: PairDetailAdrRisk;
-  /** Daily timeframe trend bias */
   dailyBias?: PairDetailDailyBias;
-  /**
-     * Current EMA 50 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema50?: number | null;
-  /**
-     * Current EMA 200 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema200?: number | null;
-  /** EMA 50 values aligned with candles (last 200) */
   ema50Values?: number[];
-  /** EMA 200 values aligned with candles (last 200) */
   ema200Values?: number[];
   trend?: PairDetailTrend;
   fairValueGaps?: FairValueGap[];
   marketStructure?: MarketStructureInfo;
-  /** Round number levels near current price */
   psychologicalLevels?: number[];
+  volumeProfile?: VolumeProfile;
+  orderBlocks?: OrderBlock[];
+  liquidityGrabs?: LiquidityGrab[];
   updatedAt: string;
 }

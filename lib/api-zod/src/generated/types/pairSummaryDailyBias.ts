@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * Daily timeframe trend bias based on EMA20/50
- */
 export type PairSummaryDailyBias = typeof PairSummaryDailyBias[keyof typeof PairSummaryDailyBias];
 
 

@@ -23,7 +23,6 @@ export interface PairSummary {
   change: number;
   changePct: number;
   zoneStatus: PairSummaryZoneStatus;
-  /** none=no signal, short=price in resistance zone, long=price in support zone */
   signal: PairSummarySignal;
   /** @nullable */
   nearestResistance?: number | null;
@@ -31,38 +30,19 @@ export interface PairSummary {
   nearestSupport?: number | null;
   /** @nullable */
   distanceToNearestZonePct?: number | null;
-  /** Candlestick pattern detected on the last candle near/in the zone */
   pattern?: PairSummaryPattern;
-  /**
-     * Average Daily Range over last 14 days in pips
-     * @nullable
-     */
+  /** @nullable */
   adrPips?: number | null;
-  /**
-     * Today's high-low range in pips so far
-     * @nullable
-     */
+  /** @nullable */
   todayRangePips?: number | null;
-  /**
-     * Percentage of ADR already consumed today (0-100+)
-     * @nullable
-     */
+  /** @nullable */
   adrPercent?: number | null;
-  /** low<50%, medium 50-70%, high 70-90%, very_high>90% */
   adrRisk?: PairSummaryAdrRisk;
-  /** Daily timeframe trend bias based on EMA20/50 */
   dailyBias?: PairSummaryDailyBias;
-  /**
-     * Current EMA 50 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema50?: number | null;
-  /**
-     * Current EMA 200 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema200?: number | null;
-  /** M15 market structure trend */
   trend?: PairSummaryTrend;
   updatedAt: string;
 }

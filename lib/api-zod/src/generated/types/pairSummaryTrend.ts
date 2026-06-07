@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * M15 market structure trend
- */
 export type PairSummaryTrend = typeof PairSummaryTrend[keyof typeof PairSummaryTrend];
 
 

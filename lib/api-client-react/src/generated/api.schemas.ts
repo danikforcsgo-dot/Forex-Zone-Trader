@@ -20,9 +20,6 @@ export const PairSummaryZoneStatus = {
   near_support: 'near_support',
 } as const;
 
-/**
- * none=no signal, short=price in resistance zone, long=price in support zone
- */
 export type PairSummarySignal = typeof PairSummarySignal[keyof typeof PairSummarySignal];
 
 
@@ -32,9 +29,6 @@ export const PairSummarySignal = {
   long: 'long',
 } as const;
 
-/**
- * Candlestick pattern detected on the last candle near/in the zone
- */
 export type PairSummaryPattern = typeof PairSummaryPattern[keyof typeof PairSummaryPattern];
 
 
@@ -49,9 +43,6 @@ export const PairSummaryPattern = {
   doji: 'doji',
 } as const;
 
-/**
- * low<50%, medium 50-70%, high 70-90%, very_high>90%
- */
 export type PairSummaryAdrRisk = typeof PairSummaryAdrRisk[keyof typeof PairSummaryAdrRisk];
 
 
@@ -63,9 +54,6 @@ export const PairSummaryAdrRisk = {
   unknown: 'unknown',
 } as const;
 
-/**
- * Daily timeframe trend bias based on EMA20/50
- */
 export type PairSummaryDailyBias = typeof PairSummaryDailyBias[keyof typeof PairSummaryDailyBias];
 
 
@@ -75,9 +63,6 @@ export const PairSummaryDailyBias = {
   neutral: 'neutral',
 } as const;
 
-/**
- * M15 market structure trend
- */
 export type PairSummaryTrend = typeof PairSummaryTrend[keyof typeof PairSummaryTrend];
 
 
@@ -98,7 +83,6 @@ export interface PairSummary {
   change: number;
   changePct: number;
   zoneStatus: PairSummaryZoneStatus;
-  /** none=no signal, short=price in resistance zone, long=price in support zone */
   signal: PairSummarySignal;
   /** @nullable */
   nearestResistance?: number | null;
@@ -106,38 +90,19 @@ export interface PairSummary {
   nearestSupport?: number | null;
   /** @nullable */
   distanceToNearestZonePct?: number | null;
-  /** Candlestick pattern detected on the last candle near/in the zone */
   pattern?: PairSummaryPattern;
-  /**
-     * Average Daily Range over last 14 days in pips
-     * @nullable
-     */
+  /** @nullable */
   adrPips?: number | null;
-  /**
-     * Today's high-low range in pips so far
-     * @nullable
-     */
+  /** @nullable */
   todayRangePips?: number | null;
-  /**
-     * Percentage of ADR already consumed today (0-100+)
-     * @nullable
-     */
+  /** @nullable */
   adrPercent?: number | null;
-  /** low<50%, medium 50-70%, high 70-90%, very_high>90% */
   adrRisk?: PairSummaryAdrRisk;
-  /** Daily timeframe trend bias based on EMA20/50 */
   dailyBias?: PairSummaryDailyBias;
-  /**
-     * Current EMA 50 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema50?: number | null;
-  /**
-     * Current EMA 200 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema200?: number | null;
-  /** M15 market structure trend */
   trend?: PairSummaryTrend;
   updatedAt: string;
 }
@@ -198,9 +163,42 @@ export interface MarketStructureInfo {
   choch?: MarketStructureInfoChoch;
 }
 
-/**
- * Which higher timeframe confirms this zone
- */
+export interface VpBin {
+  priceMid: number;
+  normalizedVol: number;
+  isPoc: boolean;
+  isValueArea: boolean;
+}
+
+export interface VolumeProfile {
+  /** Point of Control — price level with highest volume */
+  poc: number;
+  /** Value Area High (70% of volume) */
+  vah: number;
+  /** Value Area Low (70% of volume) */
+  val: number;
+  bins: VpBin[];
+}
+
+export interface OrderBlock {
+  top: number;
+  bot: number;
+  /** Bullish OB = potential buy zone; Bearish OB = potential sell zone */
+  isBullish: boolean;
+  timestamp: number;
+  /** True if price has already returned through the OB */
+  mitigated: boolean;
+}
+
+export interface LiquidityGrab {
+  /** The swing level that was swept */
+  price: number;
+  /** True = buy-side liquidity was grabbed (wick above swing high) */
+  isBuySide: boolean;
+  timestamp: number;
+  wickExtent: number;
+}
+
 export type ZoneHtfLevel = typeof ZoneHtfLevel[keyof typeof ZoneHtfLevel];
 
 
@@ -222,26 +220,14 @@ export interface Zone {
   volSum?: number | null;
   firstBar?: number;
   lastTouch?: number;
-  /** 1-5 star rating: touches + HTF confluence */
   rating: number;
-  /** True if zone aligns with H1 or H4 S&R zone */
   htfConfluence: boolean;
-  /** Which higher timeframe confirms this zone */
   htfLevel?: ZoneHtfLevel;
-  /**
-     * Zone quality score 0-100
-     * @nullable
-     */
+  /** @nullable */
   probabilityScore?: number | null;
-  /**
-     * True if zone center is near a psychological level (.00 or .50)
-     * @nullable
-     */
+  /** @nullable */
   nearRoundNumber?: boolean | null;
-  /**
-     * Number of M15 bars since last touch
-     * @nullable
-     */
+  /** @nullable */
   ageBars?: number | null;
 }
 
@@ -290,9 +276,6 @@ export const PairDetailAdrRisk = {
   unknown: 'unknown',
 } as const;
 
-/**
- * Daily timeframe trend bias
- */
 export type PairDetailDailyBias = typeof PairDetailDailyBias[keyof typeof PairDetailDailyBias];
 
 
@@ -336,27 +319,20 @@ export interface PairDetail {
   /** @nullable */
   adrPercent?: number | null;
   adrRisk?: PairDetailAdrRisk;
-  /** Daily timeframe trend bias */
   dailyBias?: PairDetailDailyBias;
-  /**
-     * Current EMA 50 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema50?: number | null;
-  /**
-     * Current EMA 200 on M15
-     * @nullable
-     */
+  /** @nullable */
   ema200?: number | null;
-  /** EMA 50 values aligned with candles (last 200) */
   ema50Values?: number[];
-  /** EMA 200 values aligned with candles (last 200) */
   ema200Values?: number[];
   trend?: PairDetailTrend;
   fairValueGaps?: FairValueGap[];
   marketStructure?: MarketStructureInfo;
-  /** Round number levels near current price */
   psychologicalLevels?: number[];
+  volumeProfile?: VolumeProfile;
+  orderBlocks?: OrderBlock[];
+  liquidityGrabs?: LiquidityGrab[];
   updatedAt: string;
 }
 
@@ -420,19 +396,34 @@ export interface MarketSummary {
   activeAlerts: number;
   session: MarketSummarySession;
   sessionTime: string;
-  /** True if current UTC time is in a high-probability kill zone */
   isKillZone?: boolean;
-  /**
-     * Name of the current kill zone if active
-     * @nullable
-     */
+  /** @nullable */
   killZoneName?: string | null;
-  /** Day of week 0=Sun 6=Sat */
   dayOfWeek?: number;
-  /**
-     * Warning for Monday/Friday trading
-     * @nullable
-     */
+  /** @nullable */
   dayWarning?: string | null;
+}
+
+export type CalendarEventImpact = typeof CalendarEventImpact[keyof typeof CalendarEventImpact];
+
+
+export const CalendarEventImpact = {
+  High: 'High',
+  Medium: 'Medium',
+  Low: 'Low',
+  Holiday: 'Holiday',
+  'Non-Economic': 'Non-Economic',
+} as const;
+
+export interface CalendarEvent {
+  title: string;
+  /** Currency code e.g. USD, GBP */
+  country: string;
+  /** ISO datetime string */
+  date: string;
+  impact: CalendarEventImpact;
+  forecast?: string;
+  previous?: string;
+  actual?: string;
 }
 
