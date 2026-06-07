@@ -6,8 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PairSummaryAdrRisk } from './pairSummaryAdrRisk';
+import type { PairSummaryDailyBias } from './pairSummaryDailyBias';
 import type { PairSummaryPattern } from './pairSummaryPattern';
 import type { PairSummarySignal } from './pairSummarySignal';
+import type { PairSummaryTrend } from './pairSummaryTrend';
 import type { PairSummaryZoneStatus } from './pairSummaryZoneStatus';
 
 export interface PairSummary {
@@ -48,5 +50,19 @@ export interface PairSummary {
   adrPercent?: number | null;
   /** low<50%, medium 50-70%, high 70-90%, very_high>90% */
   adrRisk?: PairSummaryAdrRisk;
+  /** Daily timeframe trend bias based on EMA20/50 */
+  dailyBias?: PairSummaryDailyBias;
+  /**
+     * Current EMA 50 on M15
+     * @nullable
+     */
+  ema50?: number | null;
+  /**
+     * Current EMA 200 on M15
+     * @nullable
+     */
+  ema200?: number | null;
+  /** M15 market structure trend */
+  trend?: PairSummaryTrend;
   updatedAt: string;
 }

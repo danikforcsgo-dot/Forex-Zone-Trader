@@ -24,4 +24,19 @@ export interface Zone {
   htfConfluence: boolean;
   /** Which higher timeframe confirms this zone */
   htfLevel?: ZoneHtfLevel;
+  /**
+     * Zone quality score 0-100
+     * @nullable
+     */
+  probabilityScore?: number | null;
+  /**
+     * True if zone center is near a psychological level (.00 or .50)
+     * @nullable
+     */
+  nearRoundNumber?: boolean | null;
+  /**
+     * Number of M15 bars since last touch
+     * @nullable
+     */
+  ageBars?: number | null;
 }

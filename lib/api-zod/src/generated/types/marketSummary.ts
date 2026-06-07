@@ -15,4 +15,18 @@ export interface MarketSummary {
   activeAlerts: number;
   session: MarketSummarySession;
   sessionTime: string;
+  /** True if current UTC time is in a high-probability kill zone */
+  isKillZone?: boolean;
+  /**
+     * Name of the current kill zone if active
+     * @nullable
+     */
+  killZoneName?: string | null;
+  /** Day of week 0=Sun 6=Sat */
+  dayOfWeek?: number;
+  /**
+     * Warning for Monday/Friday trading
+     * @nullable
+     */
+  dayWarning?: string | null;
 }

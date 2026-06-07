@@ -1,12 +1,36 @@
 import { useGetPairDetail, getGetPairDetailQueryKey, useGetAlerts } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, Loader2, Target, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowLeft, Loader2, Target, TrendingUp, TrendingDown, BarChart2, Minus } from "lucide-react";
 import { MiniChart } from "@/components/mini-chart";
 import { PatternBadge } from "@/components/pattern-badge";
 import { ZoneRating } from "@/components/zone-rating";
 import { AdrBar } from "@/components/adr-bar";
 import { useSoundAlert } from "@/hooks/use-sound-alert";
-import { formatPrice, formatChange, zoneStatusRu } from "@/lib/format";
+import { formatPrice, formatChange, zoneStatusRu, priceDecimals } from "@/lib/format";
+
+const TREND_RU: Record<string, string> = {
+  up:    "↑ Восходящий",
+  down:  "↓ Нисходящий",
+  range: "— Боковик",
+};
+
+const BIAS_RU: Record<string, string> = {
+  bullish: "↑ БЫЧИЙ",
+  bearish: "↓ МЕДВЕЖИЙ",
+  neutral: "— НЕЙТРАЛЬНЫЙ",
+};
+
+function ProbabilityBadge({ score }: { score: number }) {
+  const color =
+    score >= 70 ? "text-success bg-success/15 border-success/40" :
+    score >= 50 ? "text-warning bg-warning/15 border-warning/40" :
+    "text-muted-foreground bg-muted/20 border-border";
+  return (
+    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border font-mono ${color}`}>
+      {score}%
+    </span>
+  );
+}
 
 export default function PairDetail() {
   const params = useParams<{ symbol: string }>();
@@ -36,12 +60,22 @@ export default function PairDetail() {
 
   const isShort = detail.signal === "short";
   const isLong = detail.signal === "long";
+  const dec = priceDecimals(detail.symbol);
 
   const signalColor = isShort ? "text-destructive" : isLong ? "text-success" : "text-muted-foreground";
   const signalBorder = isShort ? "border-destructive bg-destructive/10" : isLong ? "border-success bg-success/10" : "border-border bg-card";
 
+  const ms = detail.marketStructure;
+  const bias = detail.dailyBias ?? "neutral";
+  const biasColor =
+    bias === "bullish" ? "text-success" :
+    bias === "bearish" ? "text-destructive" :
+    "text-muted-foreground";
+
+  const trendLabel = ms ? (TREND_RU[ms.trend] ?? ms.trend) : "—";
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in">
+    <div className="max-w-6xl mx-auto space-y-4 animate-in fade-in">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-4">
@@ -71,12 +105,12 @@ export default function PairDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Sidebar */}
-        <div className="space-y-4">
+        <div className="space-y-3">
 
           {/* Signal card */}
-          <div className={`p-5 rounded-lg border ${signalBorder}`}>
+          <div className={`p-4 rounded-lg border ${signalBorder}`}>
             <h3 className="text-xs font-bold text-muted-foreground uppercase mb-3 flex items-center gap-2">
               <Target className="w-4 h-4" />
               Торговый Сигнал
@@ -105,7 +139,6 @@ export default function PairDetail() {
               ))}
             </div>
 
-            {/* Distance to nearest zone when neutral */}
             {!isShort && !isLong && (detail.nearestResistance != null || detail.nearestSupport != null) && (
               <div className="mt-3 pt-3 border-t border-border/40 space-y-1 text-xs font-mono">
                 {detail.nearestResistance != null && (
@@ -132,8 +165,94 @@ export default function PairDetail() {
             )}
           </div>
 
+          {/* Market Structure card */}
+          <div className="p-4 rounded-lg border border-border bg-card">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase mb-3 flex items-center gap-2">
+              <BarChart2 className="w-4 h-4" />
+              Структура Рынка
+            </h3>
+
+            <div className="space-y-2 text-xs font-mono">
+              {/* Daily Bias */}
+              <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                <span className="text-muted-foreground">Daily Bias</span>
+                <span className={`font-bold ${biasColor}`}>{BIAS_RU[bias] ?? bias}</span>
+              </div>
+
+              {/* M15 Trend */}
+              <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                <span className="text-muted-foreground">M15 Тренд</span>
+                <span className={`font-bold ${
+                  ms?.trend === "up" ? "text-success" :
+                  ms?.trend === "down" ? "text-destructive" :
+                  "text-muted-foreground"
+                }`}>{trendLabel}</span>
+              </div>
+
+              {/* EMA alignment */}
+              {detail.ema50 != null && detail.ema200 != null && (
+                <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                  <span className="text-muted-foreground">EMA 50/200</span>
+                  <div className="text-right space-y-0.5">
+                    <div>
+                      <span className="text-blue-400">EMA50</span>
+                      <span className="text-foreground ml-1">{formatPrice(detail.ema50, detail.symbol)}</span>
+                    </div>
+                    <div>
+                      <span className="text-orange-400">EMA200</span>
+                      <span className="text-foreground ml-1">{formatPrice(detail.ema200, detail.symbol)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Swing points */}
+              {ms && (ms.lastSwingHigh != null || ms.lastSwingLow != null) && (
+                <div className="flex justify-between items-start pb-2 border-b border-border/40">
+                  <span className="text-muted-foreground">Свинги</span>
+                  <div className="text-right space-y-0.5">
+                    {ms.lastSwingHigh != null && (
+                      <div><span className="text-destructive/80">↑ High</span> <span>{ms.lastSwingHigh.toFixed(dec)}</span></div>
+                    )}
+                    {ms.lastSwingLow != null && (
+                      <div><span className="text-success/80">↓ Low</span> <span>{ms.lastSwingLow.toFixed(dec)}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* BOS */}
+              {ms?.bos && (
+                <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                  <span className={ms.bos.direction === "up" ? "text-success font-bold" : "text-destructive font-bold"}>
+                    BOS {ms.bos.direction === "up" ? "▲" : "▼"}
+                  </span>
+                  <span>{ms.bos.price.toFixed(dec)}</span>
+                </div>
+              )}
+
+              {/* CHOCH */}
+              {ms?.choch && (
+                <div className="flex justify-between items-center">
+                  <span className={ms.choch.direction === "up" ? "text-success font-bold" : "text-destructive font-bold"}>
+                    CHOCH {ms.choch.direction === "up" ? "▲" : "▼"}
+                  </span>
+                  <span>{ms.choch.price.toFixed(dec)}</span>
+                </div>
+              )}
+
+              {/* FVG count */}
+              {detail.fairValueGaps != null && detail.fairValueGaps.length > 0 && (
+                <div className="flex justify-between items-center pt-2 border-t border-border/40">
+                  <span className="text-muted-foreground">FVG (незакрытые)</span>
+                  <span className="text-cyan-400 font-bold">{detail.fairValueGaps.filter(f => !f.filled).length}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* ADR card */}
-          <div className="p-5 rounded-lg border border-border bg-card">
+          <div className="p-4 rounded-lg border border-border bg-card">
             <AdrBar
               adrPips={detail.adrPips}
               todayRangePips={detail.todayRangePips}
@@ -143,20 +262,34 @@ export default function PairDetail() {
           </div>
 
           {/* Zones list */}
-          <div className="p-5 rounded-lg border border-border bg-card">
+          <div className="p-4 rounded-lg border border-border bg-card">
             <h3 className="text-xs font-bold text-muted-foreground uppercase mb-4">Ближайшие зоны</h3>
             <div className="space-y-4">
+
               <div>
                 <div className="flex items-center gap-2 text-destructive mb-2 text-xs font-bold uppercase tracking-wider">
                   <TrendingDown className="w-3.5 h-3.5" /> Сопротивление
                 </div>
                 {detail.resistanceZones.slice(0, 3).map((z, i) => (
                   <div key={i} className="py-2 border-b border-border/50 last:border-0 space-y-1" data-testid={`zone-resistance-${i}`}>
-                    <div className="font-mono text-xs flex justify-between">
-                      <span className="text-foreground">{z.bot.toFixed(5)} — {z.top.toFixed(5)}</span>
-                      <span className="text-muted-foreground">{z.touches} кас.</span>
+                    <div className="font-mono text-xs flex justify-between items-center">
+                      <span className="text-foreground">{z.bot.toFixed(dec)} — {z.top.toFixed(dec)}</span>
+                      <div className="flex items-center gap-1">
+                        {z.nearRoundNumber && (
+                          <span className="text-[9px] px-1 py-0.5 rounded bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 font-bold">00/50</span>
+                        )}
+                        <span className="text-muted-foreground">{z.touches} кас.</span>
+                      </div>
                     </div>
-                    <ZoneRating rating={z.rating ?? 1} htfConfluence={z.htfConfluence ?? false} htfLevel={z.htfLevel} />
+                    <div className="flex items-center justify-between">
+                      <ZoneRating rating={z.rating ?? 1} htfConfluence={z.htfConfluence ?? false} htfLevel={z.htfLevel} />
+                      {z.probabilityScore != null && <ProbabilityBadge score={z.probabilityScore} />}
+                    </div>
+                    {z.ageBars != null && (
+                      <div className="text-[9px] text-muted-foreground font-mono">
+                        Возраст: ~{Math.round(z.ageBars / 96 * 10) / 10} дн.
+                      </div>
+                    )}
                   </div>
                 ))}
                 {detail.resistanceZones.length === 0 && (
@@ -170,25 +303,59 @@ export default function PairDetail() {
                 </div>
                 {detail.supportZones.slice(0, 3).map((z, i) => (
                   <div key={i} className="py-2 border-b border-border/50 last:border-0 space-y-1" data-testid={`zone-support-${i}`}>
-                    <div className="font-mono text-xs flex justify-between">
-                      <span className="text-foreground">{z.bot.toFixed(5)} — {z.top.toFixed(5)}</span>
-                      <span className="text-muted-foreground">{z.touches} кас.</span>
+                    <div className="font-mono text-xs flex justify-between items-center">
+                      <span className="text-foreground">{z.bot.toFixed(dec)} — {z.top.toFixed(dec)}</span>
+                      <div className="flex items-center gap-1">
+                        {z.nearRoundNumber && (
+                          <span className="text-[9px] px-1 py-0.5 rounded bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 font-bold">00/50</span>
+                        )}
+                        <span className="text-muted-foreground">{z.touches} кас.</span>
+                      </div>
                     </div>
-                    <ZoneRating rating={z.rating ?? 1} htfConfluence={z.htfConfluence ?? false} htfLevel={z.htfLevel} />
+                    <div className="flex items-center justify-between">
+                      <ZoneRating rating={z.rating ?? 1} htfConfluence={z.htfConfluence ?? false} htfLevel={z.htfLevel} />
+                      {z.probabilityScore != null && <ProbabilityBadge score={z.probabilityScore} />}
+                    </div>
+                    {z.ageBars != null && (
+                      <div className="text-[9px] text-muted-foreground font-mono">
+                        Возраст: ~{Math.round(z.ageBars / 96 * 10) / 10} дн.
+                      </div>
+                    )}
                   </div>
                 ))}
                 {detail.supportZones.length === 0 && (
                   <div className="text-xs text-muted-foreground py-1">Нет зон</div>
                 )}
               </div>
+
+              {/* Psychological levels */}
+              {detail.psychologicalLevels && detail.psychologicalLevels.length > 0 && (
+                <div className="pt-2 border-t border-border/40">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Minus className="w-3 h-3" /> Психолог. уровни
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {detail.psychologicalLevels.slice(0, 6).map((level, i) => {
+                      const isCurrent = Math.abs(level - detail.currentPrice) / detail.currentPrice < 0.002;
+                      return (
+                        <span key={i} className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
+                          isCurrent ? "bg-cyan-400/20 text-cyan-400 border border-cyan-400/30" : "bg-muted/30 text-muted-foreground"
+                        }`}>
+                          {level.toFixed(dec)}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Chart */}
-        <div className="lg:col-span-2 rounded-lg border border-border bg-card p-4 min-h-[500px] flex flex-col">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase mb-4 tracking-wider">M15 · График и Зоны S&R</h3>
-          <div className="flex-1 w-full min-h-[420px]">
+        <div className="lg:col-span-2 rounded-lg border border-border bg-card p-4 min-h-[520px] flex flex-col">
+          <h3 className="text-xs font-bold text-muted-foreground uppercase mb-4 tracking-wider">M15 · График и Зоны S&amp;R</h3>
+          <div className="flex-1 w-full min-h-[460px]">
             <MiniChart detail={detail} />
           </div>
         </div>

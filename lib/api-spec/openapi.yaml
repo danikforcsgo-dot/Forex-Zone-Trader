@@ -179,6 +179,20 @@ components:
           type: string
           enum: [low, medium, high, very_high, unknown]
           description: "low<50%, medium 50-70%, high 70-90%, very_high>90%"
+        dailyBias:
+          type: string
+          enum: [bullish, bearish, neutral]
+          description: "Daily timeframe trend bias based on EMA20/50"
+        ema50:
+          type: ["number", "null"]
+          description: "Current EMA 50 on M15"
+        ema200:
+          type: ["number", "null"]
+          description: "Current EMA 200 on M15"
+        trend:
+          type: string
+          enum: [up, down, range]
+          description: "M15 market structure trend"
         updatedAt:
           type: string
 
@@ -204,6 +218,59 @@ components:
           type: number
         volume:
           type: number
+
+    FairValueGap:
+      type: object
+      required:
+        - top
+        - bottom
+        - isBullish
+        - timestamp
+        - filled
+      properties:
+        top:
+          type: number
+        bottom:
+          type: number
+        isBullish:
+          type: boolean
+        timestamp:
+          type: integer
+        filled:
+          type: boolean
+
+    MarketStructureInfo:
+      type: object
+      required:
+        - trend
+      properties:
+        trend:
+          type: string
+          enum: [up, down, range]
+        lastSwingHigh:
+          type: ["number", "null"]
+        lastSwingLow:
+          type: ["number", "null"]
+        bos:
+          type: ["object", "null"]
+          properties:
+            price:
+              type: number
+            direction:
+              type: string
+              enum: [up, down]
+            timestamp:
+              type: integer
+        choch:
+          type: ["object", "null"]
+          properties:
+            price:
+              type: number
+            direction:
+              type: string
+              enum: [up, down]
+            timestamp:
+              type: integer
 
     Zone:
       type: object
@@ -245,6 +312,15 @@ components:
           type: string
           enum: [none, H1, H4, H1_H4]
           description: "Which higher timeframe confirms this zone"
+        probabilityScore:
+          type: ["integer", "null"]
+          description: "Zone quality score 0-100"
+        nearRoundNumber:
+          type: ["boolean", "null"]
+          description: "True if zone center is near a psychological level (.00 or .50)"
+        ageBars:
+          type: ["integer", "null"]
+          description: "Number of M15 bars since last touch"
 
     PairDetail:
       type: object
@@ -285,7 +361,11 @@ components:
           enum: [none, short, long]
         pattern:
           type: string
-          enum: [none, pin_bar_bullish, pin_bar_bearish, engulfing_bullish, engulfing_bearish, doji]
+          enum: [none, pin_bar_bullish, pin_bar_bearish, engulfing_bullish, engulfing_bearish, doji_bearish, doji_bullish, doji]
+        nearestResistance:
+          type: ["number", "null"]
+        nearestSupport:
+          type: ["number", "null"]
         candles:
           type: array
           items:
@@ -298,6 +378,49 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Zone"
+        adrPips:
+          type: ["number", "null"]
+        todayRangePips:
+          type: ["number", "null"]
+        adrPercent:
+          type: ["number", "null"]
+        adrRisk:
+          type: string
+          enum: [low, medium, high, very_high, unknown]
+        dailyBias:
+          type: string
+          enum: [bullish, bearish, neutral]
+          description: "Daily timeframe trend bias"
+        ema50:
+          type: ["number", "null"]
+          description: "Current EMA 50 on M15"
+        ema200:
+          type: ["number", "null"]
+          description: "Current EMA 200 on M15"
+        ema50Values:
+          type: array
+          items:
+            type: number
+          description: "EMA 50 values aligned with candles (last 200)"
+        ema200Values:
+          type: array
+          items:
+            type: number
+          description: "EMA 200 values aligned with candles (last 200)"
+        trend:
+          type: string
+          enum: [up, down, range]
+        fairValueGaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/FairValueGap"
+        marketStructure:
+          $ref: "#/components/schemas/MarketStructureInfo"
+        psychologicalLevels:
+          type: array
+          items:
+            type: number
+          description: "Round number levels near current price"
         updatedAt:
           type: string
 
@@ -389,3 +512,15 @@ components:
           enum: [Sydney, Tokyo, London, New_York, Overlap_London_NY, Overlap_Tokyo_London, Closed]
         sessionTime:
           type: string
+        isKillZone:
+          type: boolean
+          description: "True if current UTC time is in a high-probability kill zone"
+        killZoneName:
+          type: ["string", "null"]
+          description: "Name of the current kill zone if active"
+        dayOfWeek:
+          type: integer
+          description: "Day of week 0=Sun 6=Sat"
+        dayWarning:
+          type: ["string", "null"]
+          description: "Warning for Monday/Friday trading"

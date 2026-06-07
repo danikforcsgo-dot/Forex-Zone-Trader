@@ -1,12 +1,43 @@
 import { PairSummary } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { PatternBadge } from "@/components/pattern-badge";
 import { AdrBar } from "@/components/adr-bar";
 import { formatPrice, formatChange } from "@/lib/format";
 
 interface PairCardProps {
   pair: PairSummary;
+}
+
+function BiasTag({ bias, trend }: { bias?: string; trend?: string }) {
+  const biasColor =
+    bias === "bullish" ? "text-success bg-success/10 border-success/30" :
+    bias === "bearish" ? "text-destructive bg-destructive/10 border-destructive/30" :
+    "text-muted-foreground bg-muted/20 border-border";
+
+  const biasLabel =
+    bias === "bullish" ? "↑ БЫЧИЙ" :
+    bias === "bearish" ? "↓ МЕДВЕЖИЙ" : "— НЕЙТР.";
+
+  const trendIcon =
+    trend === "up" ? <TrendingUp className="w-3 h-3" /> :
+    trend === "down" ? <TrendingDown className="w-3 h-3" /> :
+    <Minus className="w-3 h-3" />;
+
+  const trendLabel =
+    trend === "up" ? "Вверх" :
+    trend === "down" ? "Вниз" : "Флет";
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border font-mono tracking-wider ${biasColor}`}>
+        {biasLabel}
+      </span>
+      <span className="text-[9px] text-muted-foreground flex items-center gap-0.5 font-mono">
+        {trendIcon} {trendLabel}
+      </span>
+    </div>
+  );
 }
 
 function ZoneFooter({ pair }: { pair: PairSummary }) {
@@ -47,7 +78,6 @@ function ZoneFooter({ pair }: { pair: PairSummary }) {
       </div>
     );
   }
-  // Neutral — show distances to nearest zones
   const lines = [];
   if (pair.nearestResistance != null) {
     const dist = ((pair.nearestResistance - pair.currentPrice) / pair.currentPrice * 100).toFixed(2);
@@ -118,8 +148,13 @@ export function PairCard({ pair }: PairCardProps) {
       </div>
 
       {/* Price */}
-      <div className="text-3xl font-black text-foreground tracking-tight mb-3 font-mono" data-testid={`text-price-${pair.symbol}`}>
+      <div className="text-3xl font-black text-foreground tracking-tight mb-2 font-mono" data-testid={`text-price-${pair.symbol}`}>
         {formatPrice(pair.currentPrice, pair.symbol)}
+      </div>
+
+      {/* Daily bias + trend */}
+      <div className="mb-2">
+        <BiasTag bias={pair.dailyBias ?? undefined} trend={pair.trend ?? undefined} />
       </div>
 
       {/* Bid/Ask spread */}

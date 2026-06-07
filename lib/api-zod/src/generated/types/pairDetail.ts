@@ -6,8 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Candle } from './candle';
+import type { FairValueGap } from './fairValueGap';
+import type { MarketStructureInfo } from './marketStructureInfo';
+import type { PairDetailAdrRisk } from './pairDetailAdrRisk';
+import type { PairDetailDailyBias } from './pairDetailDailyBias';
 import type { PairDetailPattern } from './pairDetailPattern';
 import type { PairDetailSignal } from './pairDetailSignal';
+import type { PairDetailTrend } from './pairDetailTrend';
 import type { PairDetailZoneStatus } from './pairDetailZoneStatus';
 import type { Zone } from './zone';
 
@@ -22,8 +27,40 @@ export interface PairDetail {
   zoneStatus: PairDetailZoneStatus;
   signal: PairDetailSignal;
   pattern?: PairDetailPattern;
+  /** @nullable */
+  nearestResistance?: number | null;
+  /** @nullable */
+  nearestSupport?: number | null;
   candles: Candle[];
   resistanceZones: Zone[];
   supportZones: Zone[];
+  /** @nullable */
+  adrPips?: number | null;
+  /** @nullable */
+  todayRangePips?: number | null;
+  /** @nullable */
+  adrPercent?: number | null;
+  adrRisk?: PairDetailAdrRisk;
+  /** Daily timeframe trend bias */
+  dailyBias?: PairDetailDailyBias;
+  /**
+     * Current EMA 50 on M15
+     * @nullable
+     */
+  ema50?: number | null;
+  /**
+     * Current EMA 200 on M15
+     * @nullable
+     */
+  ema200?: number | null;
+  /** EMA 50 values aligned with candles (last 200) */
+  ema50Values?: number[];
+  /** EMA 200 values aligned with candles (last 200) */
+  ema200Values?: number[];
+  trend?: PairDetailTrend;
+  fairValueGaps?: FairValueGap[];
+  marketStructure?: MarketStructureInfo;
+  /** Round number levels near current price */
+  psychologicalLevels?: number[];
   updatedAt: string;
 }

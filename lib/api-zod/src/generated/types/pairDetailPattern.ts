@@ -15,5 +15,7 @@ export const PairDetailPattern = {
   pin_bar_bearish: 'pin_bar_bearish',
   engulfing_bullish: 'engulfing_bullish',
   engulfing_bearish: 'engulfing_bearish',
+  doji_bearish: 'doji_bearish',
+  doji_bullish: 'doji_bullish',
   doji: 'doji',
 } as const;

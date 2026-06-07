@@ -63,6 +63,30 @@ export const PairSummaryAdrRisk = {
   unknown: 'unknown',
 } as const;
 
+/**
+ * Daily timeframe trend bias based on EMA20/50
+ */
+export type PairSummaryDailyBias = typeof PairSummaryDailyBias[keyof typeof PairSummaryDailyBias];
+
+
+export const PairSummaryDailyBias = {
+  bullish: 'bullish',
+  bearish: 'bearish',
+  neutral: 'neutral',
+} as const;
+
+/**
+ * M15 market structure trend
+ */
+export type PairSummaryTrend = typeof PairSummaryTrend[keyof typeof PairSummaryTrend];
+
+
+export const PairSummaryTrend = {
+  up: 'up',
+  down: 'down',
+  range: 'range',
+} as const;
+
 export interface PairSummary {
   /** e.g. GBPUSD */
   symbol: string;
@@ -101,6 +125,20 @@ export interface PairSummary {
   adrPercent?: number | null;
   /** low<50%, medium 50-70%, high 70-90%, very_high>90% */
   adrRisk?: PairSummaryAdrRisk;
+  /** Daily timeframe trend bias based on EMA20/50 */
+  dailyBias?: PairSummaryDailyBias;
+  /**
+     * Current EMA 50 on M15
+     * @nullable
+     */
+  ema50?: number | null;
+  /**
+     * Current EMA 200 on M15
+     * @nullable
+     */
+  ema200?: number | null;
+  /** M15 market structure trend */
+  trend?: PairSummaryTrend;
   updatedAt: string;
 }
 
@@ -111,6 +149,53 @@ export interface Candle {
   low: number;
   close: number;
   volume: number;
+}
+
+export interface FairValueGap {
+  top: number;
+  bottom: number;
+  isBullish: boolean;
+  timestamp: number;
+  filled: boolean;
+}
+
+export type MarketStructureInfoTrend = typeof MarketStructureInfoTrend[keyof typeof MarketStructureInfoTrend];
+
+
+export const MarketStructureInfoTrend = {
+  up: 'up',
+  down: 'down',
+  range: 'range',
+} as const;
+
+/**
+ * @nullable
+ */
+export type MarketStructureInfoBos = {
+  price?: number;
+  direction?: 'up' | 'down';
+  timestamp?: number;
+} | null;
+
+/**
+ * @nullable
+ */
+export type MarketStructureInfoChoch = {
+  price?: number;
+  direction?: 'up' | 'down';
+  timestamp?: number;
+} | null;
+
+export interface MarketStructureInfo {
+  trend: MarketStructureInfoTrend;
+  /** @nullable */
+  lastSwingHigh?: number | null;
+  /** @nullable */
+  lastSwingLow?: number | null;
+  /** @nullable */
+  bos?: MarketStructureInfoBos;
+  /** @nullable */
+  choch?: MarketStructureInfoChoch;
 }
 
 /**
@@ -143,6 +228,21 @@ export interface Zone {
   htfConfluence: boolean;
   /** Which higher timeframe confirms this zone */
   htfLevel?: ZoneHtfLevel;
+  /**
+     * Zone quality score 0-100
+     * @nullable
+     */
+  probabilityScore?: number | null;
+  /**
+     * True if zone center is near a psychological level (.00 or .50)
+     * @nullable
+     */
+  nearRoundNumber?: boolean | null;
+  /**
+     * Number of M15 bars since last touch
+     * @nullable
+     */
+  ageBars?: number | null;
 }
 
 export type PairDetailZoneStatus = typeof PairDetailZoneStatus[keyof typeof PairDetailZoneStatus];
@@ -174,7 +274,41 @@ export const PairDetailPattern = {
   pin_bar_bearish: 'pin_bar_bearish',
   engulfing_bullish: 'engulfing_bullish',
   engulfing_bearish: 'engulfing_bearish',
+  doji_bearish: 'doji_bearish',
+  doji_bullish: 'doji_bullish',
   doji: 'doji',
+} as const;
+
+export type PairDetailAdrRisk = typeof PairDetailAdrRisk[keyof typeof PairDetailAdrRisk];
+
+
+export const PairDetailAdrRisk = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  very_high: 'very_high',
+  unknown: 'unknown',
+} as const;
+
+/**
+ * Daily timeframe trend bias
+ */
+export type PairDetailDailyBias = typeof PairDetailDailyBias[keyof typeof PairDetailDailyBias];
+
+
+export const PairDetailDailyBias = {
+  bullish: 'bullish',
+  bearish: 'bearish',
+  neutral: 'neutral',
+} as const;
+
+export type PairDetailTrend = typeof PairDetailTrend[keyof typeof PairDetailTrend];
+
+
+export const PairDetailTrend = {
+  up: 'up',
+  down: 'down',
+  range: 'range',
 } as const;
 
 export interface PairDetail {
@@ -188,9 +322,41 @@ export interface PairDetail {
   zoneStatus: PairDetailZoneStatus;
   signal: PairDetailSignal;
   pattern?: PairDetailPattern;
+  /** @nullable */
+  nearestResistance?: number | null;
+  /** @nullable */
+  nearestSupport?: number | null;
   candles: Candle[];
   resistanceZones: Zone[];
   supportZones: Zone[];
+  /** @nullable */
+  adrPips?: number | null;
+  /** @nullable */
+  todayRangePips?: number | null;
+  /** @nullable */
+  adrPercent?: number | null;
+  adrRisk?: PairDetailAdrRisk;
+  /** Daily timeframe trend bias */
+  dailyBias?: PairDetailDailyBias;
+  /**
+     * Current EMA 50 on M15
+     * @nullable
+     */
+  ema50?: number | null;
+  /**
+     * Current EMA 200 on M15
+     * @nullable
+     */
+  ema200?: number | null;
+  /** EMA 50 values aligned with candles (last 200) */
+  ema50Values?: number[];
+  /** EMA 200 values aligned with candles (last 200) */
+  ema200Values?: number[];
+  trend?: PairDetailTrend;
+  fairValueGaps?: FairValueGap[];
+  marketStructure?: MarketStructureInfo;
+  /** Round number levels near current price */
+  psychologicalLevels?: number[];
   updatedAt: string;
 }
 
@@ -254,5 +420,19 @@ export interface MarketSummary {
   activeAlerts: number;
   session: MarketSummarySession;
   sessionTime: string;
+  /** True if current UTC time is in a high-probability kill zone */
+  isKillZone?: boolean;
+  /**
+     * Name of the current kill zone if active
+     * @nullable
+     */
+  killZoneName?: string | null;
+  /** Day of week 0=Sun 6=Sat */
+  dayOfWeek?: number;
+  /**
+     * Warning for Monday/Friday trading
+     * @nullable
+     */
+  dayWarning?: string | null;
 }
 
