@@ -1,0 +1,96 @@
+1. Улучшение работы с Зонами S&R
+
+Фильтрация зон по минимальной силе (strength ≥ 65–75)
+Учёт возраста зоны (свежие зоны 1–10 дней работают лучше)
+Только зоны с HTF confluence (H1 + H4)
+Зоны, совпадающие с Weekly/Monthly уровнями
+Зоны возле круглых психологических уровней (00, 50)
+Фильтр по количеству тестов зоны (чем больше тестов — тем слабее)
+Разделение зон на Order Blocks, Breaker Blocks, Mitigation Blocks
+Отслеживание "сдвига" зон после сильных новостей
+
+2. Volume Profile (очень рекомендуется)
+
+POC (Point of Control) как приоритетный уровень
+Value Area (VAH + VAL)
+HVN (High Volume Nodes) — усиление твоих зон
+LVN (Low Volume Nodes) — зоны ускорения
+Session Volume Profile (London / NY)
+Fixed Range vs Visible Range Volume Profile
+Сравнение текущего профиля с предыдущими днями
+
+3. Рыночная Структура (Market Structure)
+
+Break of Structure (BOS)
+Change of Character (CHOCH)
+Higher Highs / Lower Lows / Equal Highs/Lows
+Order Blocks + Fair Value Gaps (FVG)
+Liquidity Grabs (свипы ликвидности)
+Displacement (сильные импульсные движения)
+
+4. Много таймфреймовый анализ
+
+Daily bias (тренд/флет)
+H4 — основной таймфрейм для направления
+H1 — подтверждение зоны
+M15 — таймфрейм входа
+M5 — точный вход (опционально)
+Корреляция между таймфреймами
+
+5. Сессионный и временной фильтр
+
+Лондонская сессия (самая сильная)
+Нью-Йоркская сессия
+Лондон + NY overlap (самое лучшее время)
+Токийская сессия (только для USDJPY)
+Избегать торговли в азиатскую сессию на большинстве пар
+Kill zones (лучшие часы внутри сессий)
+День недели фильтр (понедельник и пятница — осторожно)
+
+6. Свечные паттерны + Price Action
+
+Pinbar / Hammer / Shooting Star
+Engulfing (бычий/медвежий)
+Doji + контекст
+Inside Bar + breakout
+Fair Value Gap внутри зоны
+Rejection candles у зон
+
+7. Дополнительные индикаторы / конfluences
+
+ADR (Average Daily Range) — цели по расширению
+ATR для установки стопов
+RSI / Stochastic (дивергенции)
+EMA 50/200 (для трендового фильтра)
+Fibonacci retracement + extension
+Round numbers + Quarter levels
+Open Interest (если будет доступно)
+
+
+
+8. Фундаментальные и новостные фильтры
+
+Экономический календарь (высокое влияние)
+Избегать торговли за 30 мин до и после важных новостей
+Фильтр по центральным банкам (ставки, выступления)
+Корреляция с сырьём (нефть для USDCAD, золото для AUD)
+
+
+
+
+
+9. Продвинутые концепции (SMC / ICT)
+
+Smart Money Concepts
+Inducement
+Turtle Soup
+Judas Swing
+Silver Bullet
+Macro + Micro analysis
+
+10. Что можно добавить в твой дашборд
+
+Probability Score для каждой зоны
+Daily Bias индикатор
+Session timer + цветовой фон
+Volume Profile визуализация
